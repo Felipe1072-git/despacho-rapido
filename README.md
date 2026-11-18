@@ -24,6 +24,24 @@ Os campos aparecem coloridos: verde, quando veio da mensagem ou do documento; am
 
 Tudo roda no próprio navegador. Mensagens, documentos dos clientes e "Meus dados" **não são enviados pra nenhum servidor**; o site só entrega o código da página. "Meus dados" fica guardado no navegador de quem usa.
 
+## Atualizações
+
+Quando o app muda, a versão nova chega sozinha na próxima vez que abrir. Não precisa reinstalar.
+
+## Outras formas de usar (se não quiser este endereço)
+
+O app é só uma pasta com arquivos (`index.html`, `tessdata/`, `icons/`, `sw.js`, `manifest.webmanifest`). Dá pra hospedar em qualquer lugar:
+
+| Opção | Endereço | Custo | Observação |
+|---|---|---|---|
+| Como está hoje | felipe1072-git.github.io/despacho-rapido | Grátis | Atualizações feitas pelo Paulo |
+| GitHub próprio | seu-usuario.github.io/despacho-rapido | Grátis | Cria uma conta no GitHub e o repositório é transferido pra ela |
+| Domínio próprio | ex.: despachorapido.com.br | ~R$ 40/ano no Registro.br | Aponta o domínio pro GitHub Pages ou pra Cloudflare Pages (grátis) |
+| Cloudflare Pages + login | ex.: despacho.pages.dev | Grátis | Dá pra exigir login por e-mail pra abrir (Cloudflare Access) |
+| Pasta no computador | abre o `index.html` direto | Grátis | Precisa de internet pra carregar as bibliotecas e não atualiza sozinho |
+
+Em todas as opções, os dados dos clientes continuam só no computador de quem usa.
+
 ## Como funciona (técnico)
 
 Página única (`index.html`), sem build:
