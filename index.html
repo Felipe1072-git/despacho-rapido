@@ -138,8 +138,7 @@ dialog h3{margin:0 0 4px;font-size:16px}
     <div class="row">
       <button class="primary" id="btnLer">Ler dados →</button>
       <button id="btnAnexar">Anexar PDF ou Word</button>
-      <button id="ex1">Exemplo organizado</button>
-      <button id="ex2">Exemplo bagunçado</button>
+      <button id="btnPedido" title="Copia uma mensagem pra mandar ao cliente pedindo os dados no formato certo">Copiar mensagem pro cliente</button>
       <button class="ghost" id="btnLimpar">Limpar</button>
     </div>
   </section>
@@ -313,7 +312,11 @@ function parseMensagem(raw, opts = {}){
   // a) linhas com rótulo ("CPF: ...", "placa ABC1D23", ou "CPF" e o valor na linha de baixo)
   for (let i = 0; i < lines.length; i++){
     let line = lines[i];
-    if (i + 1 < lines.length && soRotulo(line) && !soRotulo(lines[i+1])){ line = line.replace(/\s*[:=]$/, '') + ': ' + lines[i+1]; i++; }
+    // (não junta se a linha de baixo já é outro campo, ex.: "CPF:" em branco seguido de "RG: 123")
+    const prox = lines[i+1] || '';
+    const pareceValor = prox && prox.length <= 60 && !/[.!?:]$/.test(prox) && !/^dados\b/i.test(prox);
+    if (i + 1 < lines.length && soRotulo(line) && pareceValor && !soRotulo(prox) && !LABELS.some(([, re]) => re.test(prox))){ line = line.replace(/\s*[:=]$/, '') + ': ' + lines[i+1]; i++; }
+    else if (soRotulo(line)) continue;   // rótulo sem valor: ignora
     let hit = false;
     for (const [k, re] of LABELS){
       const m = line.match(re);
@@ -384,6 +387,9 @@ function parseMensagem(raw, opts = {}){
   }
   if (opts.semServico) delete d.servico;   // documento (ex.: CRLV diz "licenciamento") não define o serviço
   else if (!d.servico){ const s = detectaServico(raw); if (s) set('servico', s, 'guess'); }
+
+  // documentos e números sem nenhum dígito não são valores de verdade (ex.: frase pega por engano)
+  for (const k of ['cpf', 'rg', 'cep', 'placa', 'renavam', 'chassi', 'telefone']) if (d[k] && !/\d/.test(d[k])){ delete d[k]; delete src[k]; }
 
   // d) formatação final
   if (d.nome) d.nome = tcIfLower(d.nome.replace(/\s+/g,' '));
@@ -805,31 +811,26 @@ const arqModelo = document.getElementById('arqModelo');
 document.getElementById('btnImportar').onclick = () => arqModelo.click();
 arqModelo.onchange = () => { const f = arqModelo.files[0]; arqModelo.value = ''; if (f) importaModelo(f); };
 
-const EXEMPLOS = {
-  ex1:
-`[18/11/2026 09:12] Maria Cliente: Bom dia Thawan! Seguem os dados pra transferência 🚗
-[18/11/2026 09:12] Maria Cliente: *Nome:* Maria Aparecida dos Santos
-*CPF:* 529.982.247-25
-*RG:* 12.345.678-9 SSP/SP
-*Endereço:* Rua das Palmeiras, 145 - Jardim América
-*Cidade:* Campinas/SP
-*CEP:* 13045-210
-*Telefone:* (19) 99876-5432
-*Veículo:* Fiat Argo Drive 1.0
-*Ano:* 2021/2022
-*Cor:* Prata
-*Placa:* RTA2B34
-*Renavam:* 01234567890
-*Chassi:* 9BD358A1NMYJ12345`,
-  ex2:
-`[18/11/2026 14:03] João: oi thawan, é o joão. comprei um carro 0km e preciso emplacar
-[18/11/2026 14:03] João: joao pedro ferreira lima
-[18/11/2026 14:04] João: cpf 111.444.777-35 rg 98.765.432-1
-[18/11/2026 14:04] João: moro na av. brasil 2000 apto 31, centro, sumaré sp
-[18/11/2026 14:05] João: chassi 9BWAG45U0NT123456
-[18/11/2026 14:05] João: hb20 2025 branco
-[18/11/2026 14:06] João: meu zap 19 98888-7777`,
-};
+// Mensagem pronta pro despachante mandar ao cliente no WhatsApp.
+// Os rótulos são os que o leitor entende: o cliente responde preenchendo e é só colar de volta.
+const PEDIDO_CLIENTE = `Olá! Pra fazer a sua procuração, me manda por favor os dados abaixo (é só copiar esta mensagem e preencher):
+
+*Nome completo:*
+*CPF:*
+*RG:*
+*Órgão emissor:*
+*Endereço:*
+*Bairro:*
+*Cidade/UF:*
+*CEP:*
+
+*Dados do veículo*
+*Placa:*
+*Renavam:*
+*Marca/modelo:*
+*Chassi:*
+
+Se tiver, pode mandar também o PDF da CNH digital e do ATPV-e (ou do CRLV) que eu puxo os dados direto.`;
 
 let pdfBytes = null, pdfName = '';
 const msg = document.getElementById('msg');
@@ -1166,8 +1167,19 @@ function resetPreview(){
   pdfBytes = null;
 }
 document.getElementById('btnLer').onclick = ler;
-document.getElementById('ex1').onclick = () => { msg.value = EXEMPLOS.ex1; ler(); };
-document.getElementById('ex2').onclick = () => { msg.value = EXEMPLOS.ex2; ler(); };
+document.getElementById('btnPedido').onclick = async e => {
+  const btn = e.currentTarget, rotulo = btn.textContent;
+  let ok = false;
+  try { await navigator.clipboard.writeText(PEDIDO_CLIENTE); ok = true; } catch {}
+  if (!ok){   // navegador sem acesso à área de transferência: copia pelo jeito antigo
+    const t = document.createElement('textarea'); t.value = PEDIDO_CLIENTE; t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    try { ok = document.execCommand('copy'); } catch {}
+    t.remove();
+  }
+  btn.textContent = ok ? 'Copiado! Cola no WhatsApp do cliente' : 'Não deu pra copiar aqui';
+  setTimeout(() => { btn.textContent = rotulo; }, 2500);
+};
 document.getElementById('btnLimpar').onclick = () => { msg.value = ''; docs = []; renderAnexos(); fillForm({}, {}); resetPreview(); msg.focus(); };
 
 const slug = s => winAnsi(s || '').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'');
