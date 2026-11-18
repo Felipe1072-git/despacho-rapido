@@ -1,0 +1,1299 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Despacho Rápido</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f766e">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>try{const t=localStorage.getItem('despacho-rapido.tema');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --surface-2:#f0f2f5; --border:#dde1e7; --text:#1b1f24; --muted:#5d6672;
+  --accent:#0f766e; --accent-ink:#ffffff; --accent-soft:#e0f2ef;
+  --ok:#15803d; --ok-soft:#e3f5e8; --warn:#a16207; --warn-soft:#fdf0d5; --bad:#b91c1c; --bad-soft:#fde4e4;
+  --radius:12px; --shadow:0 1px 2px rgba(0,0,0,.05),0 6px 20px rgba(0,0,0,.04);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101317; --surface:#181c22; --surface-2:#20252c; --border:#2e353e; --text:#e7eaee; --muted:#9aa4b0;
+    --accent:#2dd4bf; --accent-ink:#04201c; --accent-soft:#11332f;
+    --ok:#4ade80; --ok-soft:#14301e; --warn:#fbbf24; --warn-soft:#382a0c; --bad:#f87171; --bad-soft:#3a1717;
+    --shadow:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101317; --surface:#181c22; --surface-2:#20252c; --border:#2e353e; --text:#e7eaee; --muted:#9aa4b0;
+  --accent:#2dd4bf; --accent-ink:#04201c; --accent-soft:#11332f;
+  --ok:#4ade80; --ok-soft:#14301e; --warn:#fbbf24; --warn-soft:#382a0c; --bad:#f87171; --bad-soft:#3a1717;
+  --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--border)}
+.bar,main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar{max-width:1200px;margin:0 auto;padding-block:12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.brand{font-weight:700;font-size:17px;letter-spacing:-.01em}
+.brand small{font-weight:500;color:var(--muted);font-size:12px;margin-left:8px;padding:2px 8px;border:1px solid var(--border);border-radius:99px}
+.spacer{flex:1}
+main{max-width:1200px;margin:0 auto;padding-block:16px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;min-width:0}
+.full{grid-column:1/-1}
+h2{font-size:15px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700}
+.hint{color:var(--muted);font-size:13px;margin:0 0 12px}
+textarea,input{width:100%;font:inherit;color:var(--text);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:-1px;background:var(--surface)}
+#msg{min-height:300px;resize:vertical;font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button{font:inherit;font-size:14px;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+button:hover{background:var(--surface-2)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+button.primary:hover{filter:brightness(1.07)}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+button.ghost:hover{color:var(--text);background:var(--surface-2)}
+fieldset{border:0;padding:0;margin:0 0 14px}
+legend{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;padding:0}
+.fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f.s2{grid-column:span 2}.f.s4{grid-column:1/-1}
+.f label{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;justify-content:space-between;min-height:20px}
+.f label b{font-weight:500;color:var(--text)}
+.f textarea{min-height:60px;resize:vertical}
+.tag{font-size:11px;font-weight:600;padding:1px 7px;border-radius:99px;white-space:nowrap}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.f.is-bad input{border-color:var(--bad)}
+.f.is-warn input{border-color:var(--warn)}
+.summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13.5px;color:var(--muted)}
+.gen{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
+#preview{margin-top:14px}
+#paginas{display:flex;flex-direction:column;align-items:center;gap:14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px;overflow-x:auto}
+#paginas canvas{max-width:100%;height:auto;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.aviso{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--warn-soft);border:1px solid var(--warn);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:14px}
+.drop{outline:2px dashed var(--accent);outline-offset:-6px;background:var(--accent-soft)}
+.anexos{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.anexo{border:1px solid var(--border);border-radius:8px;padding:7px 10px;background:var(--surface-2);font-size:13.5px;min-width:0}
+.anexo-top{display:flex;align-items:center;gap:8px;min-width:0}
+.anexo-nome{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.anexo-st{font-size:12.5px;color:var(--muted);margin-top:2px}
+.anexo details{margin-top:4px;font-size:12.5px;color:var(--muted)}
+.anexo summary{cursor:pointer}
+.anexo pre{white-space:pre-wrap;word-break:break-word;font-size:12px;margin:6px 0 0;max-height:180px;overflow:auto;color:var(--text)}
+.x{border:0;background:transparent;color:var(--muted);padding:2px 6px;font-size:16px;line-height:1}
+.x:hover{color:var(--bad);background:transparent}
+.status{margin:10px 0 0;font-size:13.5px}
+.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}.status.warn{color:var(--warn)}
+.note{font-size:12.5px;color:var(--muted);margin-top:10px}
+dialog{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);padding:0;width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto}
+.importa{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 14px;padding:10px 12px;border-radius:8px;background:var(--accent-soft)}
+.importa .hint{margin:0}
+.logos{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.logo{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.logo img{max-height:56px;max-width:220px;background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog form{padding:18px}
+dialog h3{margin:0 0 4px;font-size:16px}
+.cfg-warn{font-size:12.5px;color:var(--warn);background:var(--warn-soft);padding:4px 10px;border-radius:99px;cursor:pointer;border:0}
+@media (max-width:1150px){
+  .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .f.s2{grid-column:1/-1}
+}
+@media (max-width:900px){
+  main{grid-template-columns:1fr}
+  .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .f.s2{grid-column:1/-1}
+  #msg{min-height:200px}
+  #paginas{padding:8px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">Despacho Rápido</div>
+    <div class="spacer"></div>
+    <button id="btnInstalar" hidden>Instalar no computador</button>
+    <button class="cfg-warn" id="cfgWarn" hidden>Configure seus dados</button>
+    <button id="btnTema" aria-label="Alternar tema claro/escuro"></button>
+    <button id="btnCfg">⚙ Meus dados</button>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h2><span class="step">1</span> Cole a mensagem ou anexe documentos</h2>
+    <p class="hint">Cole a conversa do WhatsApp do jeito que veio e/ou anexe PDF ou Word (CNH, CRLV, ficha do cliente). Dá pra arrastar os arquivos pra cá.</p>
+    <textarea id="msg" placeholder="Ex.: Nome: Maria da Silva&#10;CPF: 000.000.000-00&#10;RG: ...&#10;Placa: ..."></textarea>
+    <ul id="anexos" class="anexos" hidden></ul>
+    <input type="file" id="arquivos" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden>
+    <div class="row">
+      <button class="primary" id="btnLer">Ler dados →</button>
+      <button id="btnAnexar">Anexar PDF ou Word</button>
+      <button id="ex1">Exemplo organizado</button>
+      <button id="ex2">Exemplo bagunçado</button>
+      <button class="ghost" id="btnLimpar">Limpar</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="step">2</span> Confira os dados</h2>
+    <p class="hint">Verde: lido da mensagem ou do documento. Amarelo: o app deduziu, dê uma olhada. Vermelho: faltando ou inválido.</p>
+    <form id="form" autocomplete="off" onsubmit="return false"></form>
+  </section>
+
+  <section class="card full">
+    <div class="gen">
+      <div>
+        <h2><span class="step">3</span> Gerar o documento</h2>
+        <div class="summary" id="summary">Cole uma mensagem e clique em “Ler dados”.</div>
+      </div>
+      <div class="row" style="margin:0">
+        <button class="primary" id="btnGerar">Gerar PDF</button>
+        <button id="btnBaixar" hidden>⬇ Baixar PDF</button>
+      </div>
+    </div>
+    <div id="aviso" class="aviso" hidden></div>
+    <p id="status" class="status" hidden></p>
+    <div id="preview" hidden><div id="paginas" aria-label="Prévia do PDF"></div></div>
+    <p class="note">Procuração particular no layout do modelo do despachante. Outorgados, logos e rodapé vêm de “Meus dados” (dá pra importar do modelo Word). Os dados do cliente ficam só neste aparelho e não são salvos.</p>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <form method="dialog" id="cfgForm">
+    <h3>Meus dados</h3>
+    <p class="hint">O que é fixo na procuração: outorgados, logos, poderes e rodapé. Fica salvo só neste navegador.</p>
+    <div class="importa">
+      <button type="button" id="btnImportar">Importar do meu modelo Word</button>
+      <input type="file" id="arqModelo" accept=".docx" hidden>
+      <button type="button" class="ghost" id="btnBackup">Salvar backup</button>
+      <button type="button" class="ghost" id="btnRestaurar">Restaurar backup</button>
+      <input type="file" id="arqBackup" accept=".json,application/json" hidden>
+      <span class="hint" id="importaStatus"></span>
+    </div>
+    <div id="cfgOuts"></div>
+    <fieldset><legend>Logos do cabeçalho</legend><div id="cfgLogos" class="logos"></div></fieldset>
+    <fieldset><legend>Poderes</legend>
+      <div class="f"><label for="c_poderes">Parágrafo</label><textarea id="c_poderes" rows="3"></textarea></div>
+      <div class="f" style="margin-top:8px"><label for="c_servicos">Serviços (saem sublinhados)</label><textarea id="c_servicos" rows="3"></textarea></div>
+    </fieldset>
+    <fieldset><legend>Rodapé</legend>
+      <div class="f"><label for="c_rodape">Uma linha do rodapé por linha</label><textarea id="c_rodape" rows="4"></textarea></div>
+    </fieldset>
+    <div class="row" style="justify-content:flex-end;margin-top:16px">
+      <button value="cancel" formnovalidate>Cancelar</button>
+      <button class="primary" value="save" id="cfgSave">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<!-- pdf.js só para a prévia; o worker carregado como script roda na própria página -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+"use strict";
+/* =========================================================================
+   1. LEITURA DA MENSAGEM (sem IA: regras fixas, previsíveis)
+   ========================================================================= */
+const UFS = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
+
+const SERVICOS = [
+  ['Transferência de propriedade',          /transfer[eê]ncia|transferir/i],
+  ['Troca de placa para o padrão Mercosul', /mercosul|troca de placa|trocar (a )?placa/i],
+  ['Segunda via do CRV/CRLV',               /\b2\s*[ªao°]?\s*via\b|segunda via/i],
+  ['Licenciamento anual (CRLV-e)',          /licenciamento|licenciar/i],
+  ['Alteração de endereço',                 /(mudan[çc]a|altera[çc][ãa]o|trocar|mudar)\s+(de\s+|o\s+)?endere[çc]o/i],
+  ['Baixa de gravame',                      /gravame|baixa de aliena[çc][ãa]o/i],
+  ['Primeiro emplacamento (veículo 0 km)',  /primeiro emplacamento|emplac|\b0\s?km\b|zero\s?km|carro novo|moto nova|ve[íi]culo novo/i],
+];
+
+// [campo, rótulos aceitos, exige ":"?]
+const LABEL_DEFS = [
+  ['_ignorar', "nome d[ao] m[ãa]e|nome d[oa] pai|m[ãa]e|pai|filia[çc][ãa]o|data de nascimento|nascimento|nasc\\.?|e-?mail|profiss[ãa]o|estado civil", true],
+  ['nome',     "nome completo|nome do propriet[áa]rio|nome do cliente|nome", false],
+  ['nome',     "propriet[áa]rio|cliente|comprador|outorgante", true],
+  ['cpf',      "cpf\\s*/\\s*cnpj|cpf", false],
+  ['orgao',    "[óo]rg[ãa]o\\s+(?:emissor|expedidor)|emissor", false],
+  ['rg',       "rg|identidade|carteira de identidade", false],
+  ['cep',      "cep", false],
+  ['bairro',   "bairro", false],
+  ['endereco', "endere[çc]o(?:\\s+completo)?|logradouro|resid[êe]ncia", false],
+  ['endereco', "moro na|moro no|moro em|resido na|resido no|resido em", false],
+  ['cidade',   "cidade\\s*/\\s*uf|cidade|munic[íi]pio", false],
+  ['uf',       "uf", false],
+  ['uf',       "estado", true],
+  ['telefone', "telefone|celular|tel\\.?|fone|whats(?:app)?|meu zap|zap", false],
+  ['telefone', "contato", true],
+  ['placa',    "placa(?:\\s+atual)?", false],
+  ['renavam',  "renavam|renavan", false],
+  ['chassi',   "chassis?|chass[íi]", false],
+  ['ano',      "ano\\s*(?:de\\s*)?fab(?:rica[çc][ãa]o)?\\.?\\s*/\\s*mod(?:elo)?\\.?|ano\\s*/\\s*modelo|ano modelo|ano", false],
+  ['marca',    "marca\\s*/\\s*modelo|marca e modelo|modelo|marca|ve[íi]culo|carro|moto", true],
+  ['cor',      "cor", false],
+  ['servico',  "tipo de servi[çc]o|servi[çc]o|pedido|solicita[çc][ãa]o", true],
+  ['obs',      "obs\\.?|observa[çc][ãa]o|observa[çc][õo]es", false],
+];
+const LABELS = LABEL_DEFS.map(([k, alt, strict]) => [k, new RegExp('^(?:' + alt + ')' + (strict ? '\\s*[:=]\\s*' : '(?:\\s*[:=\\-–]\\s*|\\s+)') + '(.+)$', 'i')]);
+// linha que é só o rótulo ("CPF" ou "Nome:") com o valor na linha de baixo
+const LABEL_ONLY = LABEL_DEFS.map(([, alt]) => new RegExp('^(?:' + alt + ')\\s*[:=]?$', 'i'));
+const soRotulo = l => LABEL_ONLY.some(re => re.test(l));
+
+const INLINE_SPLIT = /\s+(?=(?:cpf|rg|placa|renavam|chassi|cep|cor|ano|tel(?:efone)?|celular|endere[çc]o|bairro|cidade|uf)(?:\s*[:=]|\s+\d))/gi;
+const CORES = ['branco','branca','preto','preta','prata','cinza','vermelho','vermelha','azul','verde','amarelo','amarela','bege','marrom','dourado','dourada','laranja','vinho','grafite','roxo','roxa','rosa','fantasia'];
+const NAO_NOME = /\b(oi|ol[áa]|bom|boa|dia|tarde|noite|obrigad[oa]|segue|seguem|preciso|quero|carro|moto|placa|dados|abra[çc]o|valeu|thawan|tudo|bem|rep[úu]blica|federativa|brasil|minist[ée]rio|secretaria|nacional|tr[âa]nsito|detran|senatran|governo|transportes)\b/i;
+
+function cleanText(t){
+  return t.replace(/\r/g,'')
+    .replace(/^\s*\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?\]\s*[^:\n]{1,40}:\s*/gm,'')
+    .replace(/^\s*\[\d{1,2}:\d{2}(?::\d{2})?,\s*\d{1,2}\/\d{1,2}\/\d{2,4}\]\s*[^:\n]{1,40}:\s*/gm,'')
+    .replace(/^\s*\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}\s*-\s*[^:\n]{1,40}:\s*/gm,'')
+    .replace(/[*_~`]/g,'')
+    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu,'')
+    .replace(INLINE_SPLIT, '\n')
+    .replace(/[ \t]+/g,' ');
+}
+const digits = s => (s||'').replace(/\D/g,'');
+const LOWER_WORDS = new Set(['de','da','do','das','dos','e']);
+function titleCase(s){
+  return s.toLowerCase().replace(/(^|\s|\/|-)([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase())
+    .replace(/\s(De|Da|Do|Das|Dos|E)(?=\s)/g,(m,w)=>' '+w.toLowerCase());
+}
+const tcIfLower = s => (s && s === s.toLowerCase()) ? titleCase(s) : s;
+
+function cpfValido(c){
+  c = digits(c);
+  if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+  for (let t = 9; t < 11; t++){
+    let s = 0; for (let i = 0; i < t; i++) s += +c[i] * (t + 1 - i);
+    if ((s * 10) % 11 % 10 !== +c[t]) return false;
+  }
+  return true;
+}
+const fmtCPF = v => { const d = digits(v); return d.length === 11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : v.trim(); };
+const fmtCEP = v => { const d = digits(v); return d.length === 8 ? d.replace(/(\d{5})(\d{3})/,'$1-$2') : v.trim(); };
+function fmtTel(v){
+  let d = digits(v); if (d.length === 13 && d.startsWith('55')) d = d.slice(2);
+  if (d.length === 11) return d.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');
+  if (d.length === 10) return d.replace(/(\d{2})(\d{4})(\d{4})/,'($1) $2-$3');
+  return v.trim();
+}
+function fmtPlaca(v){
+  const p = v.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if (/^[A-Z]{3}\d{4}$/.test(p)) return p.slice(0,3)+'-'+p.slice(3);
+  if (/^[A-Z]{3}\d[A-Z]\d{2}$/.test(p)) return p;
+  return v.trim().toUpperCase();
+}
+function splitCidadeUF(s){
+  const m = s.trim().match(/^(.*?)[\s,\/\-–]+([A-Za-z]{2})\.?$/);
+  if (m && m[1] && UFS.includes(m[2].toUpperCase())) return [m[1].trim(), m[2].toUpperCase()];
+  return [s.trim(), ''];
+}
+function detectaServico(t){
+  for (const [nome, re] of SERVICOS) if (re.test(t)) return nome;
+  return '';
+}
+
+function parseMensagem(raw, opts = {}){
+  const d = {}, src = {};
+  const set = (k, v, s) => { v = (v||'').trim().replace(/[.;,]+$/,'').trim(); if (v && !d[k]) { d[k] = v; src[k] = s; } };
+  const lines = cleanText(raw).split('\n').map(l => l.trim()).filter(Boolean);
+  const livres = [];
+
+  // a) linhas com rótulo ("CPF: ...", "placa ABC1D23", ou "CPF" e o valor na linha de baixo)
+  for (let i = 0; i < lines.length; i++){
+    let line = lines[i];
+    if (i + 1 < lines.length && soRotulo(line) && !soRotulo(lines[i+1])){ line = line.replace(/\s*[:=]$/, '') + ': ' + lines[i+1]; i++; }
+    let hit = false;
+    for (const [k, re] of LABELS){
+      const m = line.match(re);
+      if (m){ hit = true; if (k !== '_ignorar') set(k, m[1], 'label'); break; }
+    }
+    if (!hit) livres.push(line);
+  }
+
+  // b) ajustes nos valores rotulados
+  if (d.rg){
+    const m = d.rg.match(/^([\dXx.\-\s]+?)\s*[\-\/]?\s*([A-Za-z]{2,6}(?:\s*[\/\-\s]\s*[A-Za-z]{2})?)$/);
+    if (m){ d.rg = m[1].trim(); set('orgao', m[2].toUpperCase().replace(/\s*[\/\-\s]\s*/g,'/'), src.rg); }
+  }
+  if (d.cidade && !d.uf){
+    const [c, uf] = splitCidadeUF(d.cidade);
+    if (uf){ d.cidade = c; set('uf', uf, src.cidade); }
+  }
+  if (d.endereco){
+    const cep = d.endereco.match(/\b\d{5}-?\d{3}\b/);
+    if (cep){ set('cep', cep[0], 'guess'); d.endereco = d.endereco.replace(cep[0],'').replace(/[,\s\-–:]*(cep)?[,\s\-–:]*$/i,'').trim(); }
+    if (!d.cidade){
+      const partes = d.endereco.split(',');
+      if (partes.length > 1){
+        const [c, uf] = splitCidadeUF(partes[partes.length-1]);
+        if (uf){ set('cidade', c, 'guess'); if (!d.uf) set('uf', uf, 'guess'); d.endereco = partes.slice(0,-1).join(',').trim(); }
+      }
+    }
+  }
+  // bairro: o que vem depois do número ("Rua X, 145 - Jardim América" ou "Rua X 59, Santo Aleixo")
+  if (d.endereco && !d.bairro){
+    const m = d.endereco.match(/^(.*\d.*?)\s+[-–]\s+([^\d,]+)$/) || d.endereco.match(/^(.*\d.*?),\s*([^\d,]+)$/);
+    if (m && !/^(apto|apartamento|casa|bloco|sala|n[ºo°])/i.test(m[2].trim())){ d.endereco = m[1].trim(); set('bairro', m[2], 'guess'); }
+  }
+  if (d.servico){ const s = detectaServico(d.servico); if (s) d.servico = s; }
+
+  // c) dados soltos, sem rótulo (marcados como "confira")
+  const sobra = [];
+  for (const line of livres){
+    let usou = false;
+    const cpfs = line.match(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g);
+    if (cpfs && !d.cpf){ set('cpf', cpfs.find(cpfValido) || cpfs[0], 'guess'); usou = true; }
+    const placa = line.match(/\b[A-Z]{3}[- ]?\d[A-Z0-9]\d{2}\b/i);
+    if (placa && !d.placa){ set('placa', placa[0], 'guess'); usou = true; }
+    const chassi = line.match(/\b(?=[A-HJ-NPR-Z0-9]*\d)(?=[A-HJ-NPR-Z0-9]*[A-Z])[A-HJ-NPR-Z0-9]{17}\b/i);
+    if (chassi && !d.chassi){ set('chassi', chassi[0], 'guess'); usou = true; }
+    const cep = line.match(/\b\d{5}-\d{3}\b/);
+    if (cep && !d.cep){ set('cep', cep[0], 'guess'); usou = true; }
+    const tel = line.match(/\(?\b\d{2}\)?\s*9\d{4}[-\s]?\d{4}\b/);
+    if (tel && !d.telefone && !cpfs){ set('telefone', tel[0], 'guess'); usou = true; }
+    if (!usou) sobra.push(line);
+  }
+  for (const line of sobra){
+    // nome: linha só com letras, 2 a 7 palavras
+    if (!d.nome && /^[A-Za-zÀ-ÿ']+(?:\s+[A-Za-zÀ-ÿ']+){1,6}$/.test(line) && !NAO_NOME.test(line)){
+      set('nome', line, 'guess'); continue;
+    }
+    // linha do veículo: tem ano e/ou cor
+    const ano = line.match(/\b(19[5-9]\d|20[0-4]\d)(?:\s*\/\s*(?:19|20)?\d{2})?\b/);
+    const corRe = new RegExp('\\b(' + CORES.join('|') + ')\\b','i');
+    const cor = line.match(corRe);
+    if ((ano || cor) && line.length <= 60){
+      if (ano) set('ano', ano[0].replace(/\s/g,''), 'guess');
+      if (cor) set('cor', cor[1], 'guess');
+      const resto = line.replace(ano ? ano[0] : '', '').replace(corRe, '')
+        .replace(/\b(carro|moto|modelo|ano|cor|ve[íi]culo)\b/gi,'').replace(/[,;:\-–]+/g,' ').replace(/\s+/g,' ').trim();
+      if (resto && /[a-z]/i.test(resto) && resto.length <= 40) set('marca', resto, 'guess');
+    }
+  }
+  if (opts.semServico) delete d.servico;   // documento (ex.: CRLV diz "licenciamento") não define o serviço
+  else if (!d.servico){ const s = detectaServico(raw); if (s) set('servico', s, 'guess'); }
+
+  // d) formatação final
+  if (d.nome) d.nome = tcIfLower(d.nome.replace(/\s+/g,' '));
+  if (d.cpf) d.cpf = fmtCPF(d.cpf);
+  if (d.cep) d.cep = fmtCEP(d.cep);
+  if (d.telefone) d.telefone = fmtTel(d.telefone);
+  if (d.placa) d.placa = fmtPlaca(d.placa);
+  if (d.chassi) d.chassi = d.chassi.toUpperCase().replace(/\s/g,'');
+  if (d.uf) d.uf = d.uf.toUpperCase();
+  if (d.cidade) d.cidade = tcIfLower(d.cidade);
+  if (d.endereco) d.endereco = tcIfLower(d.endereco);
+  if (d.bairro) d.bairro = tcIfLower(d.bairro);
+  if (d.cor) d.cor = tcIfLower(d.cor);
+  if (d.marca && /\d/.test(d.marca) && d.marca === d.marca.toLowerCase()) d.marca = d.marca.toUpperCase();
+  return { d, src };
+}
+
+/* =========================================================================
+   2. FORMULÁRIO DE CONFERÊNCIA
+   ========================================================================= */
+const FIELDS = [
+  ['Cliente (outorgante)', [
+    {k:'nome', label:'Nome completo', req:true, cls:'s4'},
+    {k:'rg', label:'RG', req:true},
+    {k:'orgao', label:'Órgão emissor', req:true},
+    {k:'cpf', label:'CPF/CNPJ', req:true, cls:'s2'},
+    {k:'endereco', label:'Endereço (rua e número)', req:true, cls:'s4'},
+    {k:'bairro', label:'Bairro', req:true, cls:'s2'},
+    {k:'cidade', label:'Cidade', req:true},
+    {k:'uf', label:'UF', req:true},
+    {k:'cep', label:'CEP', req:true},
+  ]],
+  ['Veículo', [
+    {k:'placa', label:'Placa', req: s => !/emplacamento/i.test(s.servico||'')},
+    {k:'renavam', label:'RENAVAM', req: s => !/emplacamento/i.test(s.servico||'')},
+    {k:'marca', label:'Marca / modelo', req:true, cls:'s2'},
+    {k:'chassi', label:'Chassi', req:true, cls:'s4'},
+  ]],
+  ['Outros dados (não entram na procuração)', [
+    {k:'servico', label:'Serviço', cls:'s2', list:true},
+    {k:'telefone', label:'Telefone', cls:'s2'},
+    {k:'ano', label:'Ano fab./modelo'},
+    {k:'cor', label:'Cor'},
+    {k:'obs', label:'Observações', cls:'s4', area:true},
+  ]],
+];
+const ALL = FIELDS.flatMap(([,items]) => items);
+let state = {}, srcs = {};
+
+function buildForm(){
+  const form = document.getElementById('form');
+  let html = '<datalist id="servicos">' + SERVICOS.map(([n]) => `<option value="${n}">`).join('') + '</datalist>';
+  for (const [grupo, items] of FIELDS){
+    html += `<fieldset><legend>${grupo}</legend><div class="fields">`;
+    for (const f of items){
+      const ctl = f.area ? `<textarea id="f_${f.k}" data-k="${f.k}"></textarea>`
+                         : `<input id="f_${f.k}" data-k="${f.k}"${f.list ? ' list="servicos"' : ''}${f.k==='uf' ? ' maxlength="2"' : ''}>`;
+      html += `<div class="f ${f.cls||''}" id="w_${f.k}"><label for="f_${f.k}"><b>${f.label}</b><span class="tag" id="t_${f.k}" hidden></span></label>${ctl}</div>`;
+    }
+    html += '</div></fieldset>';
+  }
+  form.innerHTML = html;
+  form.addEventListener('input', e => {
+    const k = e.target.dataset.k; if (!k) return;
+    state[k] = e.target.value; srcs[k] = 'user'; refresh();
+  });
+  form.addEventListener('change', e => {   // formata ao sair do campo
+    const k = e.target.dataset.k; if (!k) return;
+    const fmt = {cpf:fmtCPF, cep:fmtCEP, telefone:fmtTel, placa:v=>v?fmtPlaca(v):v, uf:v=>v.toUpperCase(), chassi:v=>v.toUpperCase().replace(/\s/g,'')}[k];
+    if (fmt && e.target.value){ e.target.value = fmt(e.target.value); state[k] = e.target.value; refresh(); }
+  });
+}
+
+const isReq = f => typeof f.req === 'function' ? f.req(state) : !!f.req;
+function check(f){
+  const v = (state[f.k]||'').trim();
+  if (!v) return isReq(f) ? ['bad','faltando'] : null;
+  switch (f.k){
+    case 'cpf':     return digits(v).length === 14 || cpfValido(v) ? null : ['bad','CPF inválido'];   // 14 dígitos = CNPJ
+    case 'placa':   return /^[A-Z]{3}-?\d[A-Z0-9]\d{2}$/.test(v.toUpperCase()) ? null : ['warn','formato estranho'];
+    case 'chassi':  return v.length === 17 ? null : ['warn',`${v.length}/17 caracteres`];
+    case 'uf':      return UFS.includes(v.toUpperCase()) ? null : ['warn','UF inválida'];
+    case 'renavam': return /^\d{9,11}$/.test(v) ? null : ['warn','9 a 11 dígitos'];
+    case 'cep':     return digits(v).length === 8 ? null : ['warn','confira'];
+  }
+  return null;
+}
+
+function refresh(){
+  let bad = 0, warn = 0;
+  const vazio = !ALL.some(f => state[f.k]);   // nada lido ainda: não marca tudo como "faltando"
+  for (const f of ALL){
+    const tag = document.getElementById('t_'+f.k), w = document.getElementById('w_'+f.k);
+    let r = vazio ? null : check(f);
+    if (!r && state[f.k]) r = srcs[f.k] === 'guess' ? ['warn','confira'] : srcs[f.k] === 'label' ? ['ok','da mensagem'] : srcs[f.k] === 'doc' ? ['ok','do documento'] : srcs[f.k] === 'ocr' ? ['warn','lido da imagem'] : null;
+    w.classList.toggle('is-bad', r?.[0] === 'bad');
+    w.classList.toggle('is-warn', r?.[0] === 'warn');
+    if (r){ tag.hidden = false; tag.className = 'tag ' + r[0]; tag.textContent = r[1]; if (r[0]==='bad') bad++; if (r[0]==='warn') warn++; }
+    else tag.hidden = true;
+  }
+  const filled = ALL.filter(f => state[f.k]).length;
+  const s = document.getElementById('summary');
+  if (!filled){ s.textContent = 'Cole uma mensagem e clique em “Ler dados”.'; return; }
+  s.innerHTML = (bad ? `<span class="tag bad">${bad} faltando/inválido</span>` : '<span class="tag ok">tudo certo</span>')
+    + (warn ? ` <span class="tag warn">${warn} pra conferir</span>` : '');
+}
+
+function fillForm(d, src){
+  state = {}; srcs = {};
+  for (const f of ALL){
+    state[f.k] = d[f.k] || ''; srcs[f.k] = src[f.k] || '';
+    document.getElementById('f_'+f.k).value = state[f.k];
+  }
+  refresh();
+}
+
+/* =========================================================================
+   3. GERAÇÃO DO PDF: procuração particular no layout do modelo do Thawan
+   Posições, fontes e tamanhos medidos no modelo (A4, pontos contados do topo).
+   Logos, outorgados, poderes e rodapé vêm de "Meus dados" (importados do Word dele).
+   ========================================================================= */
+const winAnsi = s => String(s ?? '').normalize('NFC')
+  .replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,'-')
+  .replace(/[^\x20-\x7E\xA0-\xFF]/g,'');
+const PODERES_PADRAO = 'Com poderes de representação junto aos cartórios, ao Detran/PE e/ou Ciretrans, Delegacia de roubos e furtos de veículos, Órgãos de transito municipais, estaduais e federais com fins específicos para realizar os seguintes serviços:';
+const SERVICOS_PADRAO = 'PRIMEIRO EMPLACAMENTO, VISTORIA, TRANSFERENCIA, TRANSFERENCIA DE UF, EMISSÃO DE ATPV, CANCELAMENTO DE ATPV, SEGUNDA VIA DE RECIBO, BAIXA DE GRAVAME, INCLUSÃO DE GRAVAME, ORDEM DE PLACA, ALTERAÇÃO DE CATEGORIA, ALTERAÇÃO DE CARACTERISTICAS, ASSINAR ATPV PARA O COMPRADOR E/OU VENDEDOR.';
+// CEP no formato do modelo: 54.580-665
+const cepDoc = v => { const n = digits(v); return n.length === 8 ? `${n.slice(0,2)}.${n.slice(2,5)}-${n.slice(5)}` : String(v || '').trim(); };
+
+async function gerarPDF(d, cfg){
+  const { PDFDocument, StandardFonts, rgb } = PDFLib;
+  const doc = await PDFDocument.create();
+  const F = await doc.embedFont(StandardFonts.Helvetica);       // mesmas medidas da Arial do modelo
+  const B = await doc.embedFont(StandardFonts.HelveticaBold);
+  const W = 595.28, H = 841.89, DIR = 576.4;
+  const preto = rgb(0, 0, 0);
+  const page = doc.addPage([W, H]);
+  const Y = t => H - t;                                          // o modelo foi medido de cima pra baixo
+  // mede letra a letra: widthOfTextAtSize aplica kerning, mas drawText não, e isso "comia" espaços
+  const measure = (font, t, size) => { let w = 0; for (const c of t) w += font.widthOfTextAtSize(c, size); return w; };
+  const txt = (s, x, base, font = B, size = 10) => { s = winAnsi(s); page.drawText(s, { x, y: Y(base), size, font, color: preto }); return x + measure(font, s, size); };
+  const sublinha = (x1, x2, base) => page.drawLine({ start: { x: x1, y: Y(base + 1.2) }, end: { x: x2, y: Y(base + 1.2) }, thickness: .75, color: preto });
+  const up = s => String(s || '').trim().toUpperCase();
+  const centro = (s, base, font, size) => txt(s, (W - measure(font, winAnsi(s), size)) / 2, base, font, size);
+
+  // campo do outorgante/veículo: rótulo 10 negrito + valor 11 negrito sublinhado (diminui se não couber)
+  const campo = (rotulo, valor, x, base, limite = DIR) => {
+    const xv = txt(rotulo, x, base) + 3;
+    const v = winAnsi(up(valor));
+    if (!v){ sublinha(xv, xv + 90, base); return xv + 90; }       // em branco: linha pra preencher à mão
+    let size = 11;
+    while (size > 7 && xv + measure(B, v, size) > limite) size -= .5;
+    const fim = txt(v, xv, base, B, size);
+    sublinha(xv - .5, fim + .5, base);
+    return fim;
+  };
+  // linha corrida com rótulos em negrito: [[texto, negrito?], ...]
+  const corrida = (segs, base, size = 10) => { let x = 22.1; for (const [t, b] of segs) x = txt(t, x, base, b ? B : F, size); };
+
+  // Logos do cabeçalho (importados do modelo Word)
+  for (const [i, logo] of (cfg.logos || []).slice(0, 2).entries()){
+    try {
+      const bytes = Uint8Array.from(atob(logo.data.split(',')[1]), c => c.charCodeAt(0));
+      const img = /^data:image\/png/.test(logo.data) ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+      const x = i === 0 ? 40 : 529.1 - logo.w;
+      page.drawImage(img, { x, y: Y(logo.h + (i === 0 ? .5 : 0)), width: logo.w, height: logo.h });
+    } catch {}
+  }
+
+  centro('PROCURAÇÃO PARTICULAR', 74.7, B, 14);
+
+  // Outorgante (o cliente)
+  txt('OUTORGANTE', 21.8, 91.8);
+  campo('Nome:', d.nome, 22.1, 116.1);
+  let e = campo('RG:', d.rg, 22.1, 141.5, 150);
+  e = campo('Org. Emissor:', d.orgao, Math.max(93.1, e + 9), 141.5, 236);
+  campo('CPF/CNPJ:', d.cpf, Math.max(241, e + 9), 141.5);
+  campo('Endereço:', d.endereco, 22.1, 166.7);
+  e = campo('BAIRRO:', d.bairro, 22.1, 192.1, 222);
+  campo('CIDADE:', [d.cidade, d.uf].filter(Boolean).join(' - '), Math.max(229.3, e + 9), 192.1);
+  campo('CEP:', cepDoc(d.cep), 21.9, 217.4);
+
+  // Outorgados (os despachantes, fixos em "Meus dados")
+  const outs = (cfg.outorgados || []).filter(o => o && o.nome);
+  let base = 240.7, ultima = base;
+  for (const o of (outs.length ? outs : [{}])){
+    const v = s => String(s || '').trim() || '__________';
+    txt('OUTORGADO', 21.8, base);
+    corrida([['Nome', 1], [': ' + v(o.nome)]], base + 11.2);
+    corrida([['RG', 1], [': ' + v(o.rg) + ' '], ['Org. Emissor', 1], [': ' + v(o.orgao) + ' / '], ['CPF', 1], [': ' + v(o.cpf)]], base + 22.7);
+    corrida([['Endereço', 1], [': ' + v(o.endereco)]], base + 34.1);
+    corrida([['BAIRRO', 1], [': ' + v(o.bairro) + ' / '], ['CIDADE', 1], [': ' + v(o.cidade) + ' / '], ['UF', 1], [': ' + v(o.uf) + ' / '], ['CEP', 1], [': ' + v(cepDoc(o.cep))]], base + 46.3);
+    ultima = base + 46.3;
+    base += 80.3;
+  }
+
+  // Veículo
+  const vb = ultima + 35;
+  txt('DADOS DO VEÍCULO:', 22.1, vb);
+  e = campo('PLACA:', d.placa, 22.1, vb + 24.3, 160);
+  campo('RENAVAM:', d.renavam, Math.max(169, e + 10), vb + 24.3);
+  campo('MARCA/MODELO:', d.marca, 22.1, vb + 49.5);
+  campo('CHASSI:', d.chassi, 21.9, vb + 74.9);
+
+  // Poderes: parágrafo justificado, entrelinha 23, com a lista de serviços sublinhada
+  const palavras = [];
+  for (const [t, sub] of [[cfg.poderes || PODERES_PADRAO, false], [' ', false], [cfg.servicos || SERVICOS_PADRAO, true]])
+    for (const p of winAnsi(t).split(/(\s+)/)) if (p) palavras.push({ t: /^\s+$/.test(p) ? ' ' : p, sub });
+  const esp = w => w.t === ' ';
+  const larg = w => measure(B, w.t, 10);
+  const maxW = DIR - 21.9;
+  let pb = vb + 121.8, cur = [], lw = 0;
+  const fecha = ultimaLinha => {
+    while (cur.length && esp(cur[0])) cur.shift();
+    while (cur.length && esp(cur[cur.length - 1])) cur.pop();
+    const natural = cur.reduce((a, w) => a + larg(w), 0), gaps = cur.filter(esp).length;
+    const extra = (!ultimaLinha && gaps) ? (maxW - natural) / gaps : 0;
+    let x = 21.9, ini = null;
+    cur.forEach((w, i) => {
+      const fim = x + larg(w) + (esp(w) ? extra : 0);
+      if (!esp(w)) page.drawText(w.t, { x, y: Y(pb), size: 10, font: B, color: preto });
+      // sublinhado contínuo nos serviços (inclui os espaços entre eles)
+      if (w.sub && ini === null && !esp(w)) ini = x;
+      const prox = cur[i + 1];
+      if (ini !== null && (!prox || !prox.sub)){ sublinha(ini, esp(w) ? x : fim, pb); ini = null; }
+      x = fim;
+    });
+    pb += 23; cur = []; lw = 0;
+  };
+  for (const w of palavras){
+    const ww = larg(w);
+    if (!esp(w) && cur.length && lw + ww > maxW) fecha(false);
+    cur.push(w); lw += ww;
+  }
+  if (cur.length) fecha(true);
+
+  // Local/data (preenchido à mão), assinatura e rodapé
+  const ld = pb - 23 + 34.5;
+  txt('LOCAL/DATA:', 22.2, ld);
+  sublinha(88.6, 561, ld);
+  txt('.', 561.9, ld, F);
+  sublinha(26.2, 565.7, 775.3);
+  txt('.', 566.6, 775.4, F);
+  centro('Assinatura do Outorgante', 791.5, B, 15);
+  // rodapé centralizado, quebrando linhas compridas como no modelo (coluna de ~170 pt)
+  const rodape = [];
+  for (const l of String(cfg.rodape || '').split('\n').map(s => winAnsi(s.trim())).filter(Boolean)){
+    let atual = '';
+    for (const p of l.split(' ')){
+      const teste = atual ? atual + ' ' + p : p;
+      if (atual && measure(F, teste, 7.3) > 170){ rodape.push(atual); atual = p; } else atual = teste;
+    }
+    if (atual) rodape.push(atual);
+  }
+  rodape.slice(0, 5).forEach((l, i) => centro(l, 804 + i * 9.6, F, 7.3));
+
+  doc.setTitle(`Procuração particular - ${up(d.nome) || 'sem nome'}`);
+  doc.setAuthor(outs[0]?.nome || 'Despachante');
+  doc.setCreator('Despacho Rápido');
+  doc.setProducer('Despacho Rápido (pdf-lib)');
+  doc.setLanguage('pt-BR');
+  const now = new Date(); doc.setCreationDate(now); doc.setModificationDate(now);
+  return doc.save();
+}
+
+/* =========================================================================
+   4. MEUS DADOS (outorgados, logos, poderes, rodapé) + AÇÕES
+   Ficam só no navegador de quem usa. Nada disso vai no link publicado.
+   ========================================================================= */
+const CFG_KEY = 'despacho-rapido.cfg';
+const OUT_CAMPOS = [['nome','Nome','s4'], ['rg','RG',''], ['orgao','Órgão emissor',''], ['cpf','CPF','s2'], ['endereco','Endereço','s4'], ['bairro','Bairro','s2'], ['cidade','Cidade',''], ['uf','UF',''], ['cep','CEP','s2']];
+function loadCfg(){
+  let c; try { c = JSON.parse(localStorage.getItem(CFG_KEY)) || {}; } catch { c = {}; }
+  if (!Array.isArray(c.outorgados)) c.outorgados = c.nome ? [{ nome: c.nome, cpf: c.cpf || '', endereco: c.end || '' }] : [];   // formato antigo
+  return c;
+}
+function saveCfg(c){ try { localStorage.setItem(CFG_KEY, JSON.stringify(c)); return true; } catch { return false; } }
+let cfg = loadCfg();
+let rascunho = null;   // cópia em edição enquanto o diálogo está aberto
+const updCfgWarn = () => { document.getElementById('cfgWarn').hidden = (cfg.outorgados || []).some(o => o.nome); };
+
+const dlg = document.getElementById('dlg');
+const importaStatus = document.getElementById('importaStatus');
+function desenhaOutorgados(){
+  const box = document.getElementById('cfgOuts');
+  box.innerHTML = '';
+  for (let i = 0; i < 2; i++){
+    const o = rascunho.outorgados[i] || {};
+    const fs = document.createElement('fieldset');
+    fs.innerHTML = `<legend>Outorgado ${i + 1}</legend><div class="fields"></div>`;
+    const grid = fs.querySelector('.fields');
+    for (const [k, rot, cls] of OUT_CAMPOS){
+      const div = document.createElement('div'); div.className = 'f ' + cls;
+      div.innerHTML = `<label for="o${i}_${k}">${rot}</label><input id="o${i}_${k}">`;
+      div.querySelector('input').value = o[k] || '';
+      grid.appendChild(div);
+    }
+    box.appendChild(fs);
+  }
+}
+function desenhaLogos(){
+  const box = document.getElementById('cfgLogos');
+  box.innerHTML = '';
+  if (!rascunho.logos.length){ box.innerHTML = '<p class="hint" style="margin:0">Nenhum logo. Use “Importar do meu modelo Word”.</p>'; return; }
+  rascunho.logos.forEach((l, i) => {
+    const d = document.createElement('div'); d.className = 'logo';
+    d.innerHTML = `<img alt="Logo ${i + 1} do cabeçalho"><button type="button" class="ghost">Remover</button>`;
+    d.querySelector('img').src = l.data;
+    d.querySelector('button').onclick = () => { rascunho.logos.splice(i, 1); desenhaLogos(); };
+    box.appendChild(d);
+  });
+}
+function openCfg(){
+  rascunho = { outorgados: (cfg.outorgados || []).map(o => ({ ...o })), logos: [...(cfg.logos || [])] };
+  desenhaOutorgados(); desenhaLogos();
+  document.getElementById('c_poderes').value = cfg.poderes || PODERES_PADRAO;
+  document.getElementById('c_servicos').value = cfg.servicos || SERVICOS_PADRAO;
+  document.getElementById('c_rodape').value = cfg.rodape || '';
+  importaStatus.textContent = 'Lê outorgados, logos e rodapé da sua procuração em .docx.';
+  dlg.showModal();
+}
+document.getElementById('btnCfg').onclick = openCfg;
+document.getElementById('cfgWarn').onclick = openCfg;
+dlg.addEventListener('close', () => {
+  if (dlg.returnValue !== 'save') return;
+  const outs = [];
+  for (let i = 0; i < 2; i++){
+    const o = {};
+    for (const [k] of OUT_CAMPOS) o[k] = document.getElementById(`o${i}_${k}`).value.trim();
+    if (Object.values(o).some(Boolean)) outs.push(o);
+  }
+  const novo = { outorgados: outs, logos: rascunho.logos,
+    poderes: document.getElementById('c_poderes').value.trim(),
+    servicos: document.getElementById('c_servicos').value.trim(),
+    rodape: document.getElementById('c_rodape').value.trim() };
+  cfg = novo;
+  if (!saveCfg(cfg)) mostraStatus('Salvei só até fechar a página: este navegador não deixou guardar os dados.', 'warn');
+  updCfgWarn();
+});
+
+// Importa do .docx do próprio despachante: outorgados, logos do cabeçalho e rodapé
+let zipScript = null;
+function carregaJSZip(){
+  if (window.JSZip) return Promise.resolve();
+  if (!zipScript) zipScript = new Promise((ok, falha) => {
+    const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.onload = ok; s.onerror = () => { zipScript = null; falha(new Error('jszip')); };
+    document.head.appendChild(s);
+  });
+  return zipScript;
+}
+function parseOutorgado(t){
+  const o = {};
+  const m1 = t.match(/Nome\s*:\s*(.+)/i); if (m1) o.nome = m1[1].trim();
+  const m2 = t.match(/RG\s*:\s*(.*?)\s*Org\.?\s*Emissor\s*:\s*(.*?)\s*\/?\s*CPF(?:\s*\/\s*CNPJ)?\s*:\s*([\d.\-\/]+)/i);
+  if (m2){ o.rg = m2[1].trim(); o.orgao = m2[2].trim(); o.cpf = m2[3].trim(); }
+  const m3 = t.match(/Endere[çc]o\s*:\s*(.+)/i); if (m3) o.endereco = m3[1].trim();
+  const m4 = t.match(/BAIRRO\s*:\s*(.*?)\s*\/\s*CIDADE\s*:\s*(.*?)\s*(?:\/\s*UF\s*:\s*([A-Za-z]{2})\s*)?\/?\s*CEP\s*:\s*([\d.\-]+)/i);
+  if (m4){ const [c, uf] = splitCidadeUF(m4[2].trim()); o.bairro = m4[1].trim(); o.cidade = c; o.uf = (m4[3] || uf || '').toUpperCase(); o.cep = m4[4].trim(); }
+  return o;
+}
+async function importaModelo(file){
+  importaStatus.textContent = 'Lendo o modelo…';
+  try {
+    await carregaJSZip();
+    const zip = await JSZip.loadAsync(await file.arrayBuffer());
+    const xml = await zip.file('word/document.xml').async('string');
+    const relsXml = zip.file('word/_rels/document.xml.rels') ? await zip.file('word/_rels/document.xml.rels').async('string') : '';
+    const NW = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+    const dom = new DOMParser().parseFromString(xml, 'application/xml');
+    const rels = new DOMParser().parseFromString(relsXml || '<r/>', 'application/xml');
+    const paras = [...dom.getElementsByTagNameNS(NW, 'p')].map(p => {
+      let s = '';
+      for (const n of p.getElementsByTagName('*')){
+        if (n.namespaceURI !== NW) continue;
+        if (n.localName === 't') s += n.textContent;
+        else if (n.localName === 'tab' && n.parentNode.localName === 'r') s += ' ';
+        else if (n.localName === 'br' || n.localName === 'cr') s += '\n';
+      }
+      return s;
+    });
+    // outorgados: as 4 linhas depois de cada título "OUTORGADO"
+    const outs = [];
+    paras.forEach((p, i) => {
+      if (p.trim().toUpperCase() !== 'OUTORGADO') return;
+      outs.push(parseOutorgado(paras.slice(i + 1, i + 9).filter(s => s.trim()).slice(0, 4).join('\n')));
+    });
+    // rodapé: o que vem depois de "Assinatura do Outorgante"
+    const ia = paras.findIndex(p => /assinatura do outorgante/i.test(p));
+    // (separa palavras que o Word grudou, como "DepartamentoEstadual" e "Trânsitode")
+    const rodape = ia >= 0 ? paras.slice(ia + 1).join('\n').split('\n').map(s => s.trim()).filter(Boolean).join('\n')
+      .replace(/([a-zà-ÿ])([A-ZÀ-Ý])/g, '$1 $2').replace(/\bTr[âa]nsitode\b/g, m => m.slice(0, -2) + ' de') : '';
+    // logos: as imagens do documento, na ordem (1ª à esquerda, 2ª à direita)
+    const logos = [];
+    for (const dr of dom.getElementsByTagName('*')){
+      if (dr.localName !== 'drawing' || logos.length >= 2) continue;
+      const ext = [...dr.getElementsByTagName('*')].find(n => n.localName === 'extent');
+      const blip = [...dr.getElementsByTagName('*')].find(n => n.localName === 'blip');
+      const id = blip && (blip.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'embed') || blip.getAttribute('r:embed'));
+      const rel = id && [...rels.getElementsByTagName('*')].find(n => n.getAttribute('Id') === id);
+      const alvo = rel && rel.getAttribute('Target');
+      const arq = alvo && zip.file('word/' + alvo.replace(/^\/?word\//, ''));
+      if (!ext || !arq) continue;
+      const tipo = /\.png$/i.test(alvo) ? 'image/png' : /\.jpe?g$/i.test(alvo) ? 'image/jpeg' : '';
+      if (!tipo) continue;
+      logos.push({ data: `data:${tipo};base64,` + await arq.async('base64'), w: +ext.getAttribute('cx') / 12700, h: +ext.getAttribute('cy') / 12700 });
+    }
+    if (outs.length) rascunho.outorgados = outs.slice(0, 2);
+    if (logos.length) rascunho.logos = logos;
+    if (rodape) document.getElementById('c_rodape').value = rodape;
+    desenhaOutorgados(); desenhaLogos();
+    const partes = [`${outs.length} outorgado${outs.length === 1 ? '' : 's'}`, `${logos.length} logo${logos.length === 1 ? '' : 's'}`, rodape ? 'rodapé' : 'sem rodapé'];
+    importaStatus.textContent = `Importado: ${partes.join(', ')}. Confira e clique em Salvar.`;
+  } catch (e) {
+    importaStatus.textContent = 'Não consegui ler esse arquivo. Precisa ser a procuração em .docx.';
+  }
+}
+const arqModelo = document.getElementById('arqModelo');
+document.getElementById('btnImportar').onclick = () => arqModelo.click();
+arqModelo.onchange = () => { const f = arqModelo.files[0]; arqModelo.value = ''; if (f) importaModelo(f); };
+
+const EXEMPLOS = {
+  ex1:
+`[18/11/2026 09:12] Maria Cliente: Bom dia Thawan! Seguem os dados pra transferência 🚗
+[18/11/2026 09:12] Maria Cliente: *Nome:* Maria Aparecida dos Santos
+*CPF:* 529.982.247-25
+*RG:* 12.345.678-9 SSP/SP
+*Endereço:* Rua das Palmeiras, 145 - Jardim América
+*Cidade:* Campinas/SP
+*CEP:* 13045-210
+*Telefone:* (19) 99876-5432
+*Veículo:* Fiat Argo Drive 1.0
+*Ano:* 2021/2022
+*Cor:* Prata
+*Placa:* RTA2B34
+*Renavam:* 01234567890
+*Chassi:* 9BD358A1NMYJ12345`,
+  ex2:
+`[18/11/2026 14:03] João: oi thawan, é o joão. comprei um carro 0km e preciso emplacar
+[18/11/2026 14:03] João: joao pedro ferreira lima
+[18/11/2026 14:04] João: cpf 111.444.777-35 rg 98.765.432-1
+[18/11/2026 14:04] João: moro na av. brasil 2000 apto 31, centro, sumaré sp
+[18/11/2026 14:05] João: chassi 9BWAG45U0NT123456
+[18/11/2026 14:05] João: hb20 2025 branco
+[18/11/2026 14:06] João: meu zap 19 98888-7777`,
+};
+
+let pdfBytes = null, pdfName = '';
+const msg = document.getElementById('msg');
+const aviso = document.getElementById('aviso'), statusEl = document.getElementById('status');
+function mostraStatus(t, tipo = ''){ statusEl.textContent = t; statusEl.className = 'status ' + tipo; statusEl.hidden = !t; }
+function ler(){
+  const docsOk = docs.filter(x => x.texto);
+  if (!msg.value.trim() && !docsOk.length){ msg.focus(); return; }
+  // documentos primeiro (CNH > outros > CRLV), depois a mensagem; o primeiro valor achado vale
+  const ordem = { CNH: 0, ATPV: 1, Word: 2, PDF: 2, CRLV: 3 };
+  const d = {}, src = {};
+  // no CRLV, o dono pode ser o vendedor e não o cliente: dados de pessoa vindos dele ficam como "confira"
+  const PESSOA = new Set(['nome','cpf','rg','orgao','endereco','cidade','uf','cep','telefone']);
+  const igual = (a, b) => String(a).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\W/g, '').toUpperCase() === String(b).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\W/g, '').toUpperCase();
+  const junta = (r, doc) => { for (const k in r.d){
+    const s = !doc || r.src[k] !== 'label' ? r.src[k] : doc.ocr ? 'ocr' : (doc.tipo === 'CRLV' && PESSOA.has(k)) ? 'guess' : 'doc';
+    if (!d[k]){ d[k] = r.d[k]; src[k] = s; }
+    else if (src[k] === 'ocr' && s === 'doc' && igual(d[k], r.d[k])) src[k] = 'doc';   // lido da imagem e confirmado por outro documento
+  } };
+  for (const doc of [...docsOk].sort((a, b) => (ordem[a.tipo] ?? 2) - (ordem[b.tipo] ?? 2))) junta(parseMensagem(doc.texto, { semServico: doc.tipo !== 'ATPV' }), doc);
+  if (msg.value.trim()) junta(parseMensagem(msg.value));
+  fillForm(d, src);
+  resetPreview();
+}
+
+/* ---------- Leitura de PDF e Word ---------- */
+let docs = [];   // { nome, tipo, texto, status, erro }
+// rótulos de formulário (CNH, CRLV) -> rótulo que o leitor de mensagem entende
+const DOC_LABELS = [
+  [/^ano\s+(de\s+)?fabrica[çc][ãa]o\s+ano\s+(do\s+)?modelo$/i, '_anoambos'],   // ATPV-e: os dois rótulos juntos
+  [/^(c[óo]d(igo)?\.?\s*)?renavam$/i, 'Renavam'],
+  [/^placa$/i, 'Placa'],
+  [/^chassi$/i, 'Chassi'],
+  [/^marca\s*\/\s*modelo(\s*\/\s*vers[ãa]o)?$/i, 'Marca/modelo'],
+  [/^ano\s+(de\s+)?fabrica[çc][ãa]o$/i, '_anofab'],
+  [/^ano\s+(do\s+)?modelo$/i, '_anomod'],
+  [/^cor(\s+predominante)?$/i, 'Cor'],
+  [/^(nome(\s+e\s+sobrenome)?|nome\s+do\s+propriet[áa]rio|propriet[áa]rio)$/i, 'Nome'],
+  [/^cpf(\s*\/\s*cnpj)?$/i, 'CPF'],
+  [/^doc(\.|umento)?\s*(de\s+)?identidade.*$/i, 'RG'],
+  [/^(local|munic[íi]pio(\s+de\s+domic[íi]lio.*)?)$/i, 'Cidade'],
+  [/^(endere[çc]o(\s+de\s+domic[íi]lio.*)?|logradouro)$/i, 'Endereço'],
+  [/^cep$/i, 'CEP'],
+  [/^bairro$/i, 'Bairro'],
+  [/^uf$/i, 'UF'],
+];
+// outros rótulos desses documentos: nunca são valor de campo
+const ROTULO_GENERICO = /^(exerc[íi]cio|categoria|cat|capacidade|pot[êe]ncia.*|cilindrada|peso.*|combust[íi]vel|esp[ée]cie.*|tipo.*|carroceria|motor|cmt|pbt|eixos|lota[çc][ãa]o|observa[çc][õo]es.*|mensagens.*|data.*|validade|filia[çc][ãa]o|permiss[ãa]o|acc|cat\.?\s*hab\.?|n[ºo°.]*\s*registro|1[ªa]?\s*habilita[çc][ãa]o|primeira habilita[çc][ãa]o|assinatura.*|autentica.*|identifica[çc][ãa]o.*|placa anterior.*|n[úu]mero.*|n[ºo°.]*\s*(do\s+)?crv|c[óo]digo de seguran[çc]a.*|hod[ôo]metro|valor.*|e\s*[‐\-]?\s*mail|naturalidade|nacionalidade)$/i;
+// seções do ATPV-e: o cliente do despachante é o comprador; dados do vendedor não entram no formulário
+const SECOES = [[/^identifica[çc][ãa]o do vendedor/i, 'vendedor'], [/^identifica[çc][ãa]o do comprador/i, 'comprador']];
+const normRotulo = s => s.replace(/^\d{1,2}[a-z]?\s*[.\-]?\s+/i, '').replace(/[:\s]+$/, '').trim();
+const ehRotulo = s => { const n = normRotulo(s); return DOC_LABELS.some(([re]) => re.test(n)) || ROTULO_GENERICO.test(n); };
+
+async function itensPDF(buf){
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise;   // cópia: o pdf.js consome o buffer
+  const itens = [];
+  for (let p = 1; p <= Math.min(pdf.numPages, 5); p++){
+    const page = await pdf.getPage(p);
+    const H = page.getViewport({ scale: 1 }).height;
+    for (const it of (await page.getTextContent()).items){
+      const s = (it.str || '').replace(/\s+/g, ' ').trim();
+      if (!s) continue;
+      const [, , c, dd, e, f] = it.transform;
+      const h = Math.hypot(c, dd) || it.height || 8;
+      itens.push({ s, x: e, x2: e + (it.width || s.length * h * .5), y: (p - 1) * 10000 + (H - f), h });
+    }
+  }
+  return itens;
+}
+// junta pedaços de texto vizinhos na mesma linha em "frases"
+function agrupaFrases(itens){
+  const linhas = [];
+  for (const it of [...itens].sort((a, b) => a.y - b.y)){
+    const l = linhas[linhas.length - 1];
+    if (l && Math.abs(it.y - l.y) < Math.max(2, Math.min(it.h, l.h) * .45)) l.itens.push(it);
+    else linhas.push({ y: it.y, h: it.h, itens: [it] });
+  }
+  const frases = [];
+  for (const l of linhas){
+    l.itens.sort((a, b) => a.x - b.x);
+    let cur = null;
+    for (const it of l.itens){
+      const gap = cur ? it.x - cur.x2 : Infinity;
+      if (cur && gap < it.h * 1.2){ cur.s += (gap > it.h * .12 ? ' ' : '') + it.s; cur.x2 = Math.max(cur.x2, it.x2); }
+      else { cur = { s: it.s, x: it.x, x2: it.x2, y: l.y, h: it.h }; frases.push(cur); }
+    }
+  }
+  frases.forEach(f => f.s = f.s.replace(/\s+/g, ' ').trim());
+  return frases;
+}
+function textoDasFrases(frases){
+  const out = []; let y = null;
+  for (const f of frases){ if (y !== null && Math.abs(f.y - y) < 1) out[out.length - 1] += '   ' + f.s; else out.push(f.s); y = f.y; }
+  return out;
+}
+// formulário: para cada rótulo conhecido, o valor é o texto logo abaixo dele
+function paresDoFormulario(frases){
+  const out = [], vendedor = [], usados = new Set(); let anoFab = '', anoMod = '';
+  const cabecalhos = [];
+  for (const f of frases){ const s = SECOES.find(([re]) => re.test(f.s)); if (s) cabecalhos.push({ ...f, secao: s[1] }); }
+  // seção = cabeçalho mais próximo acima, na mesma coluna
+  const secaoDe = L => {
+    let melhor = null;
+    for (const c of cabecalhos) if (c.y < L.y && c.x <= L.x + 5 && L.x - c.x < 280 && (!melhor || c.y > melhor.y)) melhor = c;
+    return melhor ? melhor.secao : '';
+  };
+  const abaixo = (L, c) => {
+    const dy = c.y - L.y;
+    return dy >= L.h * .4 && dy <= L.h * 3.5 && Math.min(c.x2, L.x2 + L.h * 2) - Math.max(c.x, L.x - L.h * 2) > 0;
+  };
+  for (const L of frases){
+    const hit = DOC_LABELS.find(([re]) => re.test(normRotulo(L.s)));
+    if (!hit) continue;
+    const livres = frases.filter(c => c !== L && !usados.has(c) && !ehRotulo(c.s) && abaixo(L, c));
+    if (!livres.length) continue;
+    if (hit[1] === '_anoambos'){   // os dois valores lado a lado na linha de baixo
+      const yMin = Math.min(...livres.map(c => c.y));
+      const linha = livres.filter(c => Math.abs(c.y - yMin) < 1).sort((a, b) => a.x - b.x);
+      linha.forEach(c => usados.add(c));
+      anoFab = linha[0]?.s || ''; anoMod = linha[1]?.s || '';
+      continue;
+    }
+    let best = livres[0], bestD = Infinity;
+    for (const c of livres){ const dist = (c.y - L.y) + Math.abs(c.x - L.x) * .3; if (dist < bestD){ bestD = dist; best = c; } }
+    usados.add(best);
+    let valor = best.s;
+    if (hit[1] === 'Endereço'){   // endereço pode continuar nas linhas de baixo
+      let ult = best;
+      for (;;){
+        const prox = frases.find(c => !usados.has(c) && !ehRotulo(c.s) && c.y - ult.y > ult.h * .3 && c.y - ult.y <= ult.h * 1.9 && Math.abs(c.x - best.x) < best.h * 2);
+        if (!prox) break;
+        usados.add(prox); valor += ', ' + prox.s; ult = prox;
+      }
+    }
+    const linhaTxt = `${hit[1]}: ${valor}`;
+    if (hit[1] === '_anofab') anoFab = valor;
+    else if (hit[1] === '_anomod') anoMod = valor;
+    else if (secaoDe(L) === 'vendedor') vendedor.push(linhaTxt);
+    else out.push(linhaTxt);
+  }
+  if (anoFab || anoMod) out.push('Ano: ' + [anoFab, anoMod].filter(Boolean).join('/'));
+  return { pares: out, vendedor, temSecoes: cabecalhos.length > 0 };
+}
+async function extraiPDF(buf, doc){
+  if (typeof pdfjsLib === 'undefined') throw new Error('pdf.js');
+  const itens = await itensPDF(buf);
+  if (itens.length < 5){ doc.tipo = 'PDF'; doc.erro = true; doc.status = 'PDF sem texto (escaneado ou foto). Esse tipo ainda não dá pra ler.'; return; }
+  const frases = agrupaFrases(itens);
+  const linhas = textoDasFrases(frases), bruto = linhas.join('\n');
+  // CNH digital do gov.br: o cartão vem como imagem; só cabeçalho e aviso do Serpro são texto
+  if (!/CARTEIRA\s+NACIONAL\s+DE\s+HABILITA/i.test(bruto) && /Assinador\s+Serpro/i.test(bruto) && itens.length < 40){
+    doc.tipo = 'CNH'; doc.ocr = true;
+    doc.status = 'Lendo a imagem da CNH… na primeira vez leva uns segundos.'; renderAnexos();
+    try {
+      doc.texto = await ocrCNH(buf);
+      if (!doc.texto){ doc.erro = true; doc.status = 'Li a imagem da CNH, mas não reconheci os campos. Digite nome, CPF e RG.'; }
+    } catch (e) {
+      doc.erro = true; doc.status = 'Não consegui ler a imagem da CNH aqui. Digite nome, CPF e RG.';
+    }
+    return;
+  }
+  doc.tipo = /AUTORIZA[ÇC][ÃA]O\s+PARA\s+TRANSFER[ÊE]NCIA/i.test(bruto) ? 'ATPV'
+           : /CARTEIRA\s+NACIONAL\s+DE\s+HABILITA/i.test(bruto) ? 'CNH'
+           : /CERTIFICADO\s+DE\s+REGISTRO|CRLV|LICENCIAMENTO\s+DE\s+VE[ÍI]CULO/i.test(bruto) ? 'CRLV' : 'PDF';
+  const { pares, vendedor } = paresDoFormulario(frases);
+  if (doc.tipo === 'ATPV') pares.push('Serviço: Transferência de propriedade');
+  // documentos conhecidos: só os pares rótulo/valor (o resto, como filiação, confundiria). Outros PDFs: pares + texto corrido
+  doc.texto = (doc.tipo !== 'PDF' && pares.length) ? pares.join('\n') : pares.concat(linhas).join('\n');
+  if (vendedor.length) doc.extra = 'Vendedor (não entra no formulário):\n' + vendedor.join('\n');
+}
+/* ---------- OCR da CNH digital (cartão em imagem) ---------- */
+const OCR_JS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+const OCR_OPCOES = {
+  workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+  corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',
+  cacheMethod: 'none',
+};
+const OCR_IDIOMA_CDN = 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/por@1.0.0/4.0.0_best_int';
+// posição de cada campo na CNH-e do gov.br, em pontos da página A4 contados do topo: [x1, y1, x2, y2]
+const CNH_CAMPOS = {
+  nome: [74, 109.5, 222, 117.8],
+  rg:   [142, 153.8, 262, 160.8],
+  cpf:  [142, 168, 186, 175.2],
+  mrz:  [70, 557.5, 240, 568.5],   // última linha do rodapé de leitura automática: NOME<<SOBRENOMES
+};
+let ocrScript = null;
+function carregaOCR(){
+  if (window.Tesseract) return Promise.resolve();
+  if (!ocrScript) ocrScript = new Promise((ok, falha) => {
+    const s = document.createElement('script'); s.src = OCR_JS; s.onload = ok;
+    s.onerror = () => { ocrScript = null; falha(new Error('ocr')); };
+    document.head.appendChild(s);
+  });
+  return ocrScript;
+}
+// Publicado no Claude, a página não pode baixar dados de outros sites: o idioma vai junto (tessdata/por.js)
+// e é entregue ao worker do OCR por dentro. Aberto direto no computador, vem do CDN.
+let porScript = null;
+function carregaPor(){
+  if (window.__ocrPor) return Promise.resolve(true);
+  if (!/^(https?|file):$/.test(location.protocol)) return Promise.resolve(false);
+  if (!porScript) porScript = new Promise(ok => {
+    const s = document.createElement('script'); s.src = 'tessdata/por.js';
+    s.onload = () => ok(!!window.__ocrPor);
+    s.onerror = () => { porScript = null; ok(false); };
+    document.head.appendChild(s);
+  });
+  return porScript;
+}
+async function idiomaOCR(){
+  if (await carregaPor()){
+    const src = 'const __b=atob("' + window.__ocrPor + '");const __u=new Uint8Array(__b.length);for(let i=0;i<__b.length;i++)__u[i]=__b.charCodeAt(i);'
+      + 'const __f=self.fetch;self.fetch=(u,o)=>String(u).endsWith("/por.traineddata")?Promise.resolve(new Response(__u)):__f(u,o);'
+      + 'importScripts(' + JSON.stringify(OCR_OPCOES.workerPath) + ');';
+    return { workerPath: URL.createObjectURL(new Blob([src], { type: 'text/javascript' })), workerBlobURL: false, langPath: 'https://dados.local/tessdata', gzip: false };
+  }
+  return { langPath: OCR_IDIOMA_CDN, gzip: true };
+}
+function recorta(pagina, escala, [x1, y1, x2, y2], fator = 2){
+  const w = (x2 - x1) * escala, h = (y2 - y1) * escala, m = 24;
+  const c = document.createElement('canvas');
+  c.width = Math.round(w * fator) + 2 * m; c.height = Math.round(h * fator) + 2 * m;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(pagina, x1 * escala, y1 * escala, w, h, m, m, c.width - 2 * m, c.height - 2 * m);
+  const img = g.getImageData(0, 0, c.width, c.height), p = img.data;   // cinza com mais contraste
+  for (let i = 0; i < p.length; i += 4){
+    const v = .299 * p[i] + .587 * p[i+1] + .114 * p[i+2];
+    p[i] = p[i+1] = p[i+2] = Math.max(0, Math.min(255, (v - 60) * 1.6));
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}
+async function ocrCNH(buf){
+  await carregaOCR();
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise;
+  const page = await pdf.getPage(1), escala = 4;   // 4x = resolução original da imagem do cartão
+  const vp = page.getViewport({ scale: escala });
+  const pagina = document.createElement('canvas'); pagina.width = vp.width; pagina.height = vp.height;
+  await page.render({ canvasContext: pagina.getContext('2d'), viewport: vp }).promise;
+  const worker = await Tesseract.createWorker('por', 1, { ...OCR_OPCOES, ...(await idiomaOCR()) });
+  const le = async (campo, permitidos) => {
+    await worker.setParameters({ tessedit_pageseg_mode: '7', tessedit_char_whitelist: permitidos });
+    const { data } = await worker.recognize(recorta(pagina, escala, CNH_CAMPOS[campo]));
+    return (data.text || '').replace(/\s+/g, ' ').trim();
+  };
+  let r;
+  try {
+    const LETRAS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÁÉÍÓÚÂÊÔÃÕÇÀÜ\' ';
+    r = {
+      nome: await le('nome', LETRAS),
+      rg:   await le('rg', '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ./- '),
+      cpf:  await le('cpf', '0123456789.-'),
+      mrz:  await le('mrz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ<'),
+    };
+  } finally { await worker.terminate(); }
+  // nome: confere com o rodapé de leitura automática, que é mais fácil de ler
+  let nome = r.nome.replace(/[^A-ZÀ-Ü' ]/g, '').replace(/\s+/g, ' ').trim();
+  const mrz = r.mrz.replace(/[^A-Z<]/g, '');
+  const nomeMrz = mrz.replace(/<+$/, '').replace(/<+/g, ' ').trim();
+  const palavras = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').split(' ').filter(Boolean);
+  const bate = nomeMrz && palavras(nome).length >= 2 && palavras(nome).every(w => palavras(nomeMrz).includes(w));
+  if (!bate && nomeMrz.split(' ').length >= 2 && mrz.endsWith('<')) nome = nomeMrz;   // termina em "<": não foi cortado
+  const cpfDig = digits(r.cpf);
+  const linhas = [];
+  if (nome) linhas.push('Nome: ' + nome);
+  if (cpfDig.length === 11) linhas.push('CPF: ' + fmtCPF(cpfDig));
+  if (/\d{4,}/.test(r.rg)) linhas.push('RG: ' + r.rg);
+  return linhas.join('\n');
+}
+
+async function extraiDOCX(buf, doc){
+  if (typeof mammoth === 'undefined') throw new Error('mammoth');
+  doc.tipo = 'Word';
+  doc.texto = ((await mammoth.extractRawText({ arrayBuffer: buf })).value || '').trim();
+  if (!doc.texto){ doc.erro = true; doc.status = 'Documento Word vazio.'; }
+}
+async function anexar(files){
+  for (const f of files){
+    const doc = { nome: f.name, tipo: '', texto: '', status: 'Lendo…', erro: false };
+    docs.push(doc); renderAnexos();
+    try {
+      const buf = await f.arrayBuffer();
+      if (/\.pdf$/i.test(f.name) || f.type === 'application/pdf') await extraiPDF(buf, doc);
+      else if (/\.docx$/i.test(f.name)) await extraiDOCX(buf, doc);
+      else if (/\.doc$/i.test(f.name)){ doc.erro = true; doc.status = 'Word antigo (.doc). Salve como .docx ou PDF e anexe de novo.'; }
+      else if (/^image\//.test(f.type)){ doc.erro = true; doc.status = 'Foto: ainda não leio imagens. Mande o PDF do documento.'; }
+      else { doc.erro = true; doc.status = 'Formato não suportado. Use PDF ou .docx.'; }
+    } catch (e) { doc.erro = true; doc.status = 'Não consegui ler esse arquivo.'; }
+    if (!doc.erro){
+      const n = Object.keys(parseMensagem(doc.texto, { semServico: doc.tipo !== 'ATPV' }).d).length;
+      doc.status = !n ? 'Li o texto, mas não achei campos conhecidos.'
+        : doc.ocr ? `${n} campo${n > 1 ? 's' : ''} lido${n > 1 ? 's' : ''} da imagem. Confira, o OCR pode errar.`
+        : `${n} campo${n > 1 ? 's' : ''} encontrado${n > 1 ? 's' : ''}`;
+    }
+    renderAnexos();
+  }
+  ler();
+}
+function renderAnexos(){
+  const ul = document.getElementById('anexos');
+  ul.hidden = !docs.length;
+  ul.innerHTML = '';
+  docs.forEach((doc, i) => {
+    const li = document.createElement('li'); li.className = 'anexo';
+    li.innerHTML = '<div class="anexo-top"><span class="anexo-nome"></span><span class="tag"></span><button class="x" title="Remover anexo" aria-label="Remover anexo">×</button></div><div class="anexo-st"></div>';
+    li.querySelector('.anexo-nome').textContent = doc.nome;
+    const tag = li.querySelector('.tag');
+    if (doc.tipo){ tag.textContent = doc.tipo; tag.classList.add(doc.erro ? 'bad' : 'ok'); } else tag.hidden = true;
+    li.querySelector('.anexo-st').textContent = doc.status;
+    li.querySelector('.x').onclick = () => { docs.splice(i, 1); renderAnexos(); ler(); };
+    if (doc.texto){
+      const det = document.createElement('details');
+      det.innerHTML = '<summary>Ver o que foi lido</summary><pre></pre>';
+      det.querySelector('pre').textContent = doc.texto + (doc.extra ? '\n\n' + doc.extra : '');
+      li.appendChild(det);
+    }
+    ul.appendChild(li);
+  });
+}
+const inputArq = document.getElementById('arquivos');
+document.getElementById('btnAnexar').onclick = () => inputArq.click();
+inputArq.onchange = () => { const fs = [...inputArq.files]; inputArq.value = ''; if (fs.length) anexar(fs); };
+const card1 = msg.closest('.card');
+['dragenter', 'dragover'].forEach(ev => card1.addEventListener(ev, e => { if ([...(e.dataTransfer?.types || [])].includes('Files')){ e.preventDefault(); card1.classList.add('drop'); } }));
+card1.addEventListener('dragleave', e => { if (!card1.contains(e.relatedTarget)) card1.classList.remove('drop'); });
+card1.addEventListener('drop', e => { if (!e.dataTransfer?.files?.length) return; e.preventDefault(); card1.classList.remove('drop'); anexar([...e.dataTransfer.files]); });
+function resetPreview(){
+  document.getElementById('preview').hidden = true;
+  document.getElementById('paginas').innerHTML = '';
+  document.getElementById('btnBaixar').hidden = true;
+  aviso.hidden = true; mostraStatus('');
+  pdfBytes = null;
+}
+document.getElementById('btnLer').onclick = ler;
+document.getElementById('ex1').onclick = () => { msg.value = EXEMPLOS.ex1; ler(); };
+document.getElementById('ex2').onclick = () => { msg.value = EXEMPLOS.ex2; ler(); };
+document.getElementById('btnLimpar').onclick = () => { msg.value = ''; docs = []; renderAnexos(); fillForm({}, {}); resetPreview(); msg.focus(); };
+
+const slug = s => winAnsi(s || '').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'');
+document.getElementById('btnGerar').onclick = () => {
+  mostraStatus('');
+  const problemas = ALL.filter(f => check(f)?.[0] === 'bad').map(f => f.label);
+  if (!problemas.length){ gerar(); return; }
+  aviso.innerHTML = '<div><b>Ainda tem campo faltando ou inválido:</b> <span id="avisoLista"></span>.</div>'
+    + '<div class="row" style="margin:0"><button id="avisoGerar">Gerar mesmo assim</button><button class="ghost" id="avisoFechar">Voltar e corrigir</button></div>';
+  document.getElementById('avisoLista').textContent = problemas.join(', ');
+  aviso.hidden = false;
+  document.getElementById('avisoGerar').onclick = () => { aviso.hidden = true; gerar(); };
+  document.getElementById('avisoFechar').onclick = () => { aviso.hidden = true; };
+};
+
+async function gerar(){
+  if (typeof PDFLib === 'undefined'){ mostraStatus('Não consegui carregar o gerador de PDF. Confira a internet e recarregue a página.', 'bad'); return; }
+  resetPreview();
+  pdfBytes = await gerarPDF(state, cfg);
+  pdfName = `Procuracao_${slug(state.nome) || 'cliente'}_${slug(state.placa) || slug((state.chassi||'').slice(-6)) || 'veiculo'}.pdf`;
+  document.getElementById('preview').hidden = false;
+  document.getElementById('btnBaixar').hidden = false;
+  await desenhaPrevia(pdfBytes);
+}
+
+async function desenhaPrevia(bytes){
+  const box = document.getElementById('paginas');
+  box.innerHTML = '';
+  const semPrevia = '<p class="hint" style="margin:0">Não deu pra mostrar a prévia aqui, mas o PDF foi gerado. Use “Baixar PDF”.</p>';
+  if (typeof pdfjsLib === 'undefined'){ box.innerHTML = semPrevia; return; }
+  try {
+    // fontes padrão do PDF (Helvetica e negrito) pra prévia ficar fiel; se não carregarem, o pdf.js usa as do sistema
+    const pdf = await pdfjsLib.getDocument({ data: bytes.slice(0), standardFontDataUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/' }).promise;
+    const cssW = Math.min((box.clientWidth || 800) - 28, 820);
+    const dpr = window.devicePixelRatio || 1;
+    for (let i = 1; i <= pdf.numPages; i++){
+      const page = await pdf.getPage(i);
+      const vp = page.getViewport({ scale: cssW / page.getViewport({ scale: 1 }).width * dpr });
+      const c = document.createElement('canvas');
+      c.width = Math.floor(vp.width); c.height = Math.floor(vp.height); c.style.width = cssW + 'px';
+      c.setAttribute('role', 'img'); c.setAttribute('aria-label', `Página ${i} do PDF`);
+      box.appendChild(c);
+      await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+    }
+  } catch (e) { box.innerHTML = semPrevia; }
+}
+
+// Salva um arquivo: no link do Claude pelo download dele; no site ou no computador, download normal.
+// Devolve true se salvou (ou se o navegador começou o download).
+async function baixarArquivo(nome, blob){
+  if (window.claude && window.claude.use){
+    const dl = await window.claude.use('downloads');
+    if (!dl){ mostraStatus('Este visualizador não permite baixar arquivos. Tente abrir o link no navegador.', 'bad'); return false; }
+    try { await dl.save({ filename: nome, data: blob }); return true; }
+    catch (e) {
+      if (e && e.code === 'declined') return false;
+      if (e && e.code === 'rate_limited') mostraStatus('Já tem um pedido de download aberto. Confirme ou feche ele e tente de novo.', 'warn');
+      else mostraStatus('Não deu pra salvar o arquivo aqui.', 'bad');
+      return false;
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return true;
+}
+document.getElementById('btnBaixar').onclick = async () => {
+  if (!pdfBytes) return;
+  mostraStatus('');
+  if (await baixarArquivo(pdfName, new Blob([pdfBytes], { type: 'application/pdf' })) && window.claude) mostraStatus('PDF salvo.', 'ok');
+};
+
+// Backup de "Meus dados" (outorgados, logos, poderes, rodapé) num arquivo .json
+document.getElementById('btnBackup').onclick = async () => {
+  const ok = await baixarArquivo('despacho-rapido-meus-dados.json', new Blob([JSON.stringify(cfg, null, 1)], { type: 'application/json' }));
+  if (ok) importaStatus.textContent = 'Backup salvo. Guarde o arquivo: ele tem os dados dos outorgados.';
+};
+const arqBackup = document.getElementById('arqBackup');
+document.getElementById('btnRestaurar').onclick = () => arqBackup.click();
+arqBackup.onchange = async () => {
+  const f = arqBackup.files[0]; arqBackup.value = '';
+  if (!f) return;
+  try {
+    const c = JSON.parse(await f.text());
+    if (!c || !Array.isArray(c.outorgados)) throw new Error('formato');
+    rascunho = { outorgados: c.outorgados.map(o => ({ ...o })), logos: Array.isArray(c.logos) ? c.logos : [] };
+    desenhaOutorgados(); desenhaLogos();
+    document.getElementById('c_poderes').value = c.poderes || PODERES_PADRAO;
+    document.getElementById('c_servicos').value = c.servicos || SERVICOS_PADRAO;
+    document.getElementById('c_rodape').value = c.rodape || '';
+    importaStatus.textContent = 'Backup carregado. Confira e clique em Salvar.';
+  } catch { importaStatus.textContent = 'Esse arquivo não é um backup do Despacho Rápido.'; }
+};
+
+// Tema claro/escuro: começa pelo do sistema; ao clicar, fixa a escolha
+const btnTema = document.getElementById('btnTema');
+const temaAtual = () => document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+function rotuloTema(){ btnTema.textContent = temaAtual() === 'dark' ? '☀ Claro' : '☾ Escuro'; }
+btnTema.onclick = () => {
+  const t = temaAtual() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('despacho-rapido.tema', t); } catch {}
+  rotuloTema();
+};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rotuloTema);
+
+// App instalável (quando aberto pelo site): funciona offline e ganha ícone na área de trabalho
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !window.claude){
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+let pedidoInstalar = null;
+const btnInstalar = document.getElementById('btnInstalar');
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); pedidoInstalar = e; btnInstalar.hidden = false; });
+window.addEventListener('appinstalled', () => { btnInstalar.hidden = true; pedidoInstalar = null; });
+btnInstalar.onclick = async () => {
+  if (!pedidoInstalar) return;
+  pedidoInstalar.prompt();
+  await pedidoInstalar.userChoice.catch(() => {});
+  pedidoInstalar = null; btnInstalar.hidden = true;
+};
+
+buildForm();
+refresh();
+updCfgWarn();
+rotuloTema();
+</script>
+</body>
+</html>
