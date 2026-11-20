@@ -138,7 +138,8 @@ dialog h3{margin:0 0 4px;font-size:16px}
     <div class="row">
       <button class="primary" id="btnLer">Ler dados →</button>
       <button id="btnAnexar">Anexar PDF ou Word</button>
-      <button id="btnPedido" title="Copia uma mensagem pra mandar ao cliente pedindo os dados no formato certo">Copiar mensagem pro cliente</button>
+      <button id="btnVendedor" title="Copia o pedido de dados do vendedor pra mandar no WhatsApp">Copiar dados vendedor</button>
+      <button id="btnComprador" title="Copia o pedido de dados do comprador pra mandar no WhatsApp">Copiar dados comprador</button>
       <button class="ghost" id="btnLimpar">Limpar</button>
     </div>
   </section>
@@ -306,7 +307,14 @@ function detectaServico(t){
 function parseMensagem(raw, opts = {}){
   const d = {}, src = {};
   const set = (k, v, s) => { v = (v||'').trim().replace(/[.;,]+$/,'').trim(); if (v && !d[k]) { d[k] = v; src[k] = s; } };
-  const lines = cleanText(raw).split('\n').map(l => l.trim()).filter(Boolean);
+  let lines = cleanText(raw).split('\n').map(l => l.trim()).filter(Boolean);
+  // Blocos "DADOS VENDEDOR" / "DADOS COMPRADOR": com os dois, o cliente é o comprador (como no ATPV-e);
+  // com um só, vale o que veio
+  const blocoDe = l => /^dados\s+(?:do\s+)?vendedor\b/i.test(l) ? 'vendedor' : /^dados\s+(?:do\s+)?comprador\b/i.test(l) ? 'comprador' : '';
+  if (lines.some(l => blocoDe(l) === 'vendedor') && lines.some(l => blocoDe(l) === 'comprador')){
+    let atual = '';
+    lines = lines.filter(l => { const b = blocoDe(l); if (b){ atual = b; return false; } return atual !== 'vendedor'; });
+  } else lines = lines.filter(l => !blocoDe(l));
   const livres = [];
 
   // a) linhas com rótulo ("CPF: ...", "placa ABC1D23", ou "CPF" e o valor na linha de baixo)
@@ -811,26 +819,13 @@ const arqModelo = document.getElementById('arqModelo');
 document.getElementById('btnImportar').onclick = () => arqModelo.click();
 arqModelo.onchange = () => { const f = arqModelo.files[0]; arqModelo.value = ''; if (f) importaModelo(f); };
 
-// Mensagem pronta pro despachante mandar ao cliente no WhatsApp.
-// Os rótulos são os que o leitor entende: o cliente responde preenchendo e é só colar de volta.
-const PEDIDO_CLIENTE = `Olá! Pra fazer a sua procuração, me manda por favor os dados abaixo (é só copiar esta mensagem e preencher):
-
-*Nome completo:*
-*CPF:*
-*RG:*
-*Órgão emissor:*
-*Endereço:*
-*Bairro:*
-*Cidade/UF:*
-*CEP:*
-
-*Dados do veículo*
-*Placa:*
-*Renavam:*
-*Marca/modelo:*
-*Chassi:*
-
-Se tiver, pode mandar também o PDF da CNH digital e do ATPV-e (ou do CRLV) que eu puxo os dados direto.`;
+// Mensagens prontas que o despachante manda no WhatsApp (modelo do Thawan).
+// Os rótulos são os que o leitor entende: a pessoa preenche e é só colar a resposta de volta.
+const CAMPOS_PESSOA = 'Nome completo:\nCPF:\nRG:\nÓrgão emissor:\nEndereço:\nBairro:\nCidade/UF:\nCEP:';
+const PEDIDOS = {
+  btnVendedor: 'DADOS VENDEDOR\n' + CAMPOS_PESSOA,
+  btnComprador: 'DADOS COMPRADOR\n' + CAMPOS_PESSOA,
+};
 
 let pdfBytes = null, pdfName = '';
 const msg = document.getElementById('msg');
@@ -1225,17 +1220,17 @@ function resetPreview(){
   pdfBytes = null;
 }
 document.getElementById('btnLer').onclick = ler;
-document.getElementById('btnPedido').onclick = async e => {
+for (const [id, texto] of Object.entries(PEDIDOS)) document.getElementById(id).onclick = async e => {
   const btn = e.currentTarget, rotulo = btn.textContent;
   let ok = false;
-  try { await navigator.clipboard.writeText(PEDIDO_CLIENTE); ok = true; } catch {}
+  try { await navigator.clipboard.writeText(texto); ok = true; } catch {}
   if (!ok){   // navegador sem acesso à área de transferência: copia pelo jeito antigo
-    const t = document.createElement('textarea'); t.value = PEDIDO_CLIENTE; t.style.position = 'fixed'; t.style.opacity = '0';
+    const t = document.createElement('textarea'); t.value = texto; t.style.position = 'fixed'; t.style.opacity = '0';
     document.body.appendChild(t); t.select();
     try { ok = document.execCommand('copy'); } catch {}
     t.remove();
   }
-  btn.textContent = ok ? 'Copiado! Cola no WhatsApp do cliente' : 'Não deu pra copiar aqui';
+  btn.textContent = ok ? 'Copiado! Cola no WhatsApp' : 'Não deu pra copiar aqui';
   setTimeout(() => { btn.textContent = rotulo; }, 2500);
 };
 document.getElementById('btnLimpar').onclick = () => { msg.value = ''; docs = []; renderAnexos(); fillForm({}, {}); resetPreview(); msg.focus(); };

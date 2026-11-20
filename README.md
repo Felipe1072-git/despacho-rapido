@@ -13,7 +13,7 @@ Ferramenta pra despachante: cola a mensagem do cliente no WhatsApp e/ou anexa os
 - **CNH digital** (PDF do gov.br): nome, CPF e RG, lidos da imagem do cartão (OCR).
 - **Word (.docx)**: fichas com rótulos tipo "Nome: ..." ou em tabela.
 
-O botão **Copiar mensagem pro cliente** copia um pedido de dados pronto pra mandar no WhatsApp. O cliente preenche e devolve, e a resposta é lida sem erro.
+Os botões **Copiar dados vendedor** e **Copiar dados comprador** copiam um pedido de dados pronto pra mandar no WhatsApp. A pessoa preenche e devolve, e a resposta é lida sem erro. Se a resposta tiver os dois blocos, o cliente da procuração é o comprador; se tiver um só, vale esse.
 
 Os campos aparecem coloridos: verde, quando veio da mensagem ou do documento; amarelo, quando é bom conferir; vermelho, quando está faltando ou inválido.
 
