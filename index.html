@@ -840,7 +840,7 @@ function ler(){
   const docsOk = docs.filter(x => x.texto);
   if (!msg.value.trim() && !docsOk.length){ msg.focus(); return; }
   // documentos primeiro (CNH > outros > CRLV), depois a mensagem; o primeiro valor achado vale
-  const ordem = { CNH: 0, ATPV: 1, Word: 2, PDF: 2, CRLV: 3 };
+  const ordem = { CNH: 0, ATPV: 1, 'NF-e': 1, Word: 2, PDF: 2, CRLV: 3 };
   const d = {}, src = {};
   // no CRLV, o dono pode ser o vendedor e não o cliente: dados de pessoa vindos dele ficam como "confira"
   const PESSOA = new Set(['nome','cpf','rg','orgao','endereco','cidade','uf','cep','telefone']);
@@ -850,7 +850,7 @@ function ler(){
     if (!d[k]){ d[k] = r.d[k]; src[k] = s; }
     else if (src[k] === 'ocr' && s === 'doc' && igual(d[k], r.d[k])) src[k] = 'doc';   // lido da imagem e confirmado por outro documento
   } };
-  for (const doc of [...docsOk].sort((a, b) => (ordem[a.tipo] ?? 2) - (ordem[b.tipo] ?? 2))) junta(parseMensagem(doc.texto, { semServico: doc.tipo !== 'ATPV' }), doc);
+  for (const doc of [...docsOk].sort((a, b) => (ordem[a.tipo] ?? 2) - (ordem[b.tipo] ?? 2))) junta(parseMensagem(doc.texto, { semServico: !DOC_DEFINE_SERVICO.has(doc.tipo) }), doc);
   if (msg.value.trim()) junta(parseMensagem(msg.value));
   fillForm(d, src);
   resetPreview();
@@ -868,21 +868,29 @@ const DOC_LABELS = [
   [/^ano\s+(de\s+)?fabrica[çc][ãa]o$/i, '_anofab'],
   [/^ano\s+(do\s+)?modelo$/i, '_anomod'],
   [/^cor(\s+predominante)?$/i, 'Cor'],
-  [/^(nome(\s+e\s+sobrenome)?|nome\s+do\s+propriet[áa]rio|propriet[áa]rio)$/i, 'Nome'],
-  [/^cpf(\s*\/\s*cnpj)?$/i, 'CPF'],
+  [/^(nome(\s+e\s+sobrenome)?|nome\s+do\s+propriet[áa]rio|propriet[áa]rio|nome\s*\/\s*raz[ãa]o\s+social)$/i, 'Nome'],
+  [/^(cpf(\s*\/\s*cnpj)?|cnpj\s*\/\s*cpf)$/i, 'CPF'],
+  [/^(fone(\s*\/\s*fax)?|telefone)$/i, 'Telefone'],
   [/^doc(\.|umento)?\s*(de\s+)?identidade.*$/i, 'RG'],
   [/^(local|munic[íi]pio(\s+de\s+domic[íi]lio.*)?)$/i, 'Cidade'],
   [/^(endere[çc]o(\s+de\s+domic[íi]lio.*)?|logradouro)$/i, 'Endereço'],
   [/^cep$/i, 'CEP'],
-  [/^bairro$/i, 'Bairro'],
+  [/^bairro(\s*\/\s*distrito)?$/i, 'Bairro'],
   [/^uf$/i, 'UF'],
 ];
 // outros rótulos desses documentos: nunca são valor de campo
-const ROTULO_GENERICO = /^(exerc[íi]cio|categoria|cat|capacidade|pot[êe]ncia.*|cilindrada|peso.*|combust[íi]vel|esp[ée]cie.*|tipo.*|carroceria|motor|cmt|pbt|eixos|lota[çc][ãa]o|observa[çc][õo]es.*|mensagens.*|data.*|validade|filia[çc][ãa]o|permiss[ãa]o|acc|cat\.?\s*hab\.?|n[ºo°.]*\s*registro|1[ªa]?\s*habilita[çc][ãa]o|primeira habilita[çc][ãa]o|assinatura.*|autentica.*|identifica[çc][ãa]o.*|placa anterior.*|n[úu]mero.*|n[ºo°.]*\s*(do\s+)?crv|c[óo]digo de seguran[çc]a.*|hod[ôo]metro|valor.*|e\s*[‐\-]?\s*mail|naturalidade|nacionalidade)$/i;
+const ROTULO_GENERICO = /^(exerc[íi]cio|categoria|cat|capacidade|pot[êe]ncia.*|cilindrada|peso.*|combust[íi]vel|esp[ée]cie.*|tipo.*|carroceria|motor|cmt|pbt|eixos|lota[çc][ãa]o|observa[çc][õo]es.*|mensagens.*|data.*|validade|filia[çc][ãa]o|permiss[ãa]o|acc|cat\.?\s*hab\.?|n[ºo°.]*\s*registro|1[ªa]?\s*habilita[çc][ãa]o|primeira habilita[çc][ãa]o|assinatura.*|autentica.*|identifica[çc][ãa]o.*|placa anterior.*|n[úu]mero.*|n[ºo°.]*\s*(do\s+)?crv|c[óo]digo de seguran[çc]a.*|hod[ôo]metro|valor.*|e\s*[‐\-]?\s*mail|naturalidade|nacionalidade|inscri[çc][ãa]o.*|hora.*|frete.*|c[óo]digo\s+(antt|produto).*|placa do ve[íi]culo|protocolo.*|natureza.*|chave.*|cnpj|quantidade|marca|base.*|desconto|outras despesas.*|ncm.*|cst.*|cfop.*|un|v\.\s*\S.*|b\.\s*calc.*|al[íi]quotas|icms|ipi|descri[çc][ãa]o.*|s[ée]rie.*|folha.*|n[ºo°]|cota [úu]nica|parcelado|pagamento|carroceria|exerc[íi]cio)$/i;
 // seções do ATPV-e: o cliente do despachante é o comprador; dados do vendedor não entram no formulário
-const SECOES = [[/^identifica[çc][ãa]o do vendedor/i, 'vendedor'], [/^identifica[çc][ãa]o do comprador/i, 'comprador']];
+// Na NF-e o cliente é o destinatário. "pagina": a seção ocupa a largura toda (NF-e);
+// sem isso, a seção vale só pra coluna do título (ATPV-e)
+const SECOES = [
+  [/^identifica[çc][ãa]o do vendedor/i, 'vendedor'], [/^identifica[çc][ãa]o do comprador/i, 'comprador'],
+  [/^destinat[áa]rio/i, 'destinatario', 'pagina'], [/^transportador/i, 'transportadora', 'pagina'],
+  [/^(c[áa]lculo do imposto|fatura|duplicata)/i, 'valores', 'pagina'], [/^dados dos produtos/i, 'produtos', 'pagina'],
+  [/^(c[áa]lculo do i\s*s\s*s\s*q\s*n|dados adicionais)/i, 'adicionais', 'pagina'],
+];
 const normRotulo = s => s.replace(/^\d{1,2}[a-z]?\s*[.\-]?\s+/i, '').replace(/[:\s]+$/, '').trim();
-const ehRotulo = s => { const n = normRotulo(s); return DOC_LABELS.some(([re]) => re.test(n)) || ROTULO_GENERICO.test(n); };
+const ehRotulo = s => { const n = normRotulo(s); return DOC_LABELS.some(([re]) => re.test(n)) || ROTULO_GENERICO.test(n) || SECOES.some(([re]) => re.test(n)); };
 
 async function itensPDF(buf){
   const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise;   // cópia: o pdf.js consome o buffer
@@ -893,7 +901,8 @@ async function itensPDF(buf){
     for (const it of (await page.getTextContent()).items){
       const s = (it.str || '').replace(/\s+/g, ' ').trim();
       if (!s) continue;
-      const [, , c, dd, e, f] = it.transform;
+      const [a, b, c, dd, e, f] = it.transform;
+      if (Math.abs(b) > Math.abs(a) * .5) continue;   // texto girado (ex.: "Valide este QRCode" na vertical do CRLV)
       const h = Math.hypot(c, dd) || it.height || 8;
       itens.push({ s, x: e, x2: e + (it.width || s.length * h * .5), y: (p - 1) * 10000 + (H - f), h });
     }
@@ -927,23 +936,30 @@ function textoDasFrases(frases){
   return out;
 }
 // formulário: para cada rótulo conhecido, o valor é o texto logo abaixo dele
-function paresDoFormulario(frases){
+// opts.soSecao: só aproveita rótulos dessa seção (na NF-e, só o destinatário)
+function paresDoFormulario(frases, opts = {}){
   const out = [], vendedor = [], usados = new Set(); let anoFab = '', anoMod = '';
   const cabecalhos = [];
-  for (const f of frases){ const s = SECOES.find(([re]) => re.test(f.s)); if (s) cabecalhos.push({ ...f, secao: s[1] }); }
-  // seção = cabeçalho mais próximo acima, na mesma coluna
+  for (const f of frases){ const s = SECOES.find(([re]) => re.test(f.s)); if (s) cabecalhos.push({ ...f, secao: s[1], pagina: !!s[2] }); }
+  const rotulos = frases.filter(f => ehRotulo(f.s));
+  // seção = cabeçalho mais próximo acima (na mesma coluna, ou em qualquer coluna se a seção ocupa a página toda)
   const secaoDe = L => {
     let melhor = null;
-    for (const c of cabecalhos) if (c.y < L.y && c.x <= L.x + 5 && L.x - c.x < 280 && (!melhor || c.y > melhor.y)) melhor = c;
+    for (const c of cabecalhos) if (c.y < L.y && (c.pagina || (c.x <= L.x + 5 && L.x - c.x < 280)) && (!melhor || c.y > melhor.y)) melhor = c;
     return melhor ? melhor.secao : '';
   };
+  const sobrepoe = (a, b, folga = 0) => Math.min(a.x2, b.x2 + folga) - Math.max(a.x, b.x - folga) > 0;
   const abaixo = (L, c) => {
     const dy = c.y - L.y;
-    return dy >= L.h * .4 && dy <= L.h * 3.5 && Math.min(c.x2, L.x2 + L.h * 2) - Math.max(c.x, L.x - L.h * 2) > 0;
+    if (dy < L.h * .4 || dy > Math.max(L.h * 3.5, 26) || !sobrepoe(c, L, L.h * 2)) return false;
+    // outro rótulo no meio do caminho (na mesma coluna) quer dizer que este campo está vazio
+    return !rotulos.some(B => B !== L && B.y > L.y + L.h * .4 && B.y < c.y - 1 && sobrepoe(c, B));
   };
   for (const L of frases){
     const hit = DOC_LABELS.find(([re]) => re.test(normRotulo(L.s)));
     if (!hit) continue;
+    const secao = secaoDe(L);
+    if (opts.soSecao && secao !== opts.soSecao) continue;
     const livres = frases.filter(c => c !== L && !usados.has(c) && !ehRotulo(c.s) && abaixo(L, c));
     if (!livres.length) continue;
     if (hit[1] === '_anoambos'){   // os dois valores lado a lado na linha de baixo
@@ -968,12 +984,52 @@ function paresDoFormulario(frases){
     const linhaTxt = `${hit[1]}: ${valor}`;
     if (hit[1] === '_anofab') anoFab = valor;
     else if (hit[1] === '_anomod') anoMod = valor;
-    else if (secaoDe(L) === 'vendedor') vendedor.push(linhaTxt);
+    else if (secao === 'vendedor') vendedor.push(linhaTxt);
     else out.push(linhaTxt);
   }
   if (anoFab || anoMod) out.push('Ano: ' + [anoFab, anoMod].filter(Boolean).join('/'));
   return { pares: out, vendedor, temSecoes: cabecalhos.length > 0 };
 }
+
+// NF-e (DANFE): o veículo vem em texto livre na descrição do produto, e cada loja escreve de um jeito.
+// Procura primeiro na descrição e, se não achar, no resto da nota.
+function veiculoNFe(frases, bruto){
+  const out = [];
+  let desc = '';
+  const rot = frases.find(f => /^descri[çc][ãa]o\s+d[oa]s?\s+produto/i.test(f.s));
+  if (rot){
+    const prim = frases
+      .filter(f => f.y > rot.y + rot.h * .4 && f.y < rot.y + 30 && Math.min(f.x2, rot.x2 + 20) - Math.max(f.x, rot.x - 20) > 0 && !ehRotulo(f.s))
+      .sort((a, b) => (a.y - b.y) || (Math.abs(a.x - rot.x) - Math.abs(b.x - rot.x)))[0];
+    if (prim){
+      const bloco = [prim];
+      for (const f of frases.filter(f => f.y > prim.y && Math.abs(f.x - prim.x) < 6).sort((a, b) => a.y - b.y)){
+        if (f.y - bloco[bloco.length - 1].y > prim.h * 2.2) break;
+        bloco.push(f);
+      }
+      desc = bloco.map(f => f.s).join(' ').replace(/\s+/g, ' ');
+    }
+  }
+  const acha = re => { for (const t of [desc, bruto]) { const m = t && t.match(re); if (m) return m; } return null; };
+  const ch = acha(/\bCHASSI\b\s*(?:N[ºo°.]*)?\s*[:\-]?\s*([A-HJ-NPR-Z0-9]{17})\b/i);
+  if (ch) out.push('Chassi: ' + ch[1].toUpperCase());
+  if (desc){
+    const modelo = desc.split(/,|;|\s-\s|\bCHASSI\b|\bCOR\b/i)[0].trim();
+    if (/[A-Z]{2}/i.test(modelo) && modelo.length <= 60) out.push('Marca/modelo: ' + modelo);
+  }
+  const cor = acha(/\bCOR\b\s*(?:PREDOMINANTE)?\s*[:\-]?\s*([A-ZÀ-Ú][A-ZÀ-Ú ]*?)\s*(?:[,;.]|$|\s+[A-ZÀ-Ú]+\s*:)/i);
+  if (cor) out.push('Cor: ' + cor[1].trim());
+  const anos = acha(/ANO\s*(?:DE\s*)?(?:FAB(?:RICA[ÇC][ÃA]O)?\.?)?\s*\/\s*MOD(?:ELO)?\.?\s*[:\-]?\s*(\d{4})\s*\/\s*(\d{2,4})/i);
+  const fab = acha(/ANO\s*(?:DE\s*)?FAB(?:RICA[ÇC][ÃA]O)?\.?\s*[:\-]?\s*(\d{4})/i);
+  const mod = acha(/ANO\s*(?:DO\s*)?MOD(?:ELO)?\.?\s*[:\-]?\s*(\d{4})/i);
+  if (anos) out.push(`Ano: ${anos[1]}/${anos[2]}`);
+  else if (fab || mod) out.push('Ano: ' + [fab && fab[1], mod && mod[1]].filter(Boolean).join('/'));
+  if (/\b0\s*KM\b|ESTADO\s*:\s*NOVO|VE[ÍI]CULO\s+NOVO/i.test(bruto)) out.push('Serviço: Primeiro emplacamento (veículo 0 km)');
+  return out;
+}
+// documentos que já dizem qual é o serviço (os outros, como o CRLV, não)
+const DOC_DEFINE_SERVICO = new Set(['ATPV', 'NF-e']);
+
 async function extraiPDF(buf, doc){
   if (typeof pdfjsLib === 'undefined') throw new Error('pdf.js');
   const itens = await itensPDF(buf);
@@ -992,11 +1048,13 @@ async function extraiPDF(buf, doc){
     }
     return;
   }
-  doc.tipo = /AUTORIZA[ÇC][ÃA]O\s+PARA\s+TRANSFER[ÊE]NCIA/i.test(bruto) ? 'ATPV'
+  doc.tipo = /DANFE|DOCUMENTO\s+AUXILIAR\s+DA\s+NOTA\s+FISCAL/i.test(bruto) ? 'NF-e'
+           : /AUTORIZA[ÇC][ÃA]O\s+PARA\s+TRANSFER[ÊE]NCIA/i.test(bruto) ? 'ATPV'
            : /CARTEIRA\s+NACIONAL\s+DE\s+HABILITA/i.test(bruto) ? 'CNH'
            : /CERTIFICADO\s+DE\s+REGISTRO|CRLV|LICENCIAMENTO\s+DE\s+VE[ÍI]CULO/i.test(bruto) ? 'CRLV' : 'PDF';
-  const { pares, vendedor } = paresDoFormulario(frases);
+  const { pares, vendedor } = paresDoFormulario(frases, doc.tipo === 'NF-e' ? { soSecao: 'destinatario' } : {});
   if (doc.tipo === 'ATPV') pares.push('Serviço: Transferência de propriedade');
+  if (doc.tipo === 'NF-e') pares.push(...veiculoNFe(frases, bruto));
   // documentos conhecidos: só os pares rótulo/valor (o resto, como filiação, confundiria). Outros PDFs: pares + texto corrido
   doc.texto = (doc.tipo !== 'PDF' && pares.length) ? pares.join('\n') : pares.concat(linhas).join('\n');
   if (vendedor.length) doc.extra = 'Vendedor (não entra no formulário):\n' + vendedor.join('\n');
@@ -1122,7 +1180,7 @@ async function anexar(files){
       else { doc.erro = true; doc.status = 'Formato não suportado. Use PDF ou .docx.'; }
     } catch (e) { doc.erro = true; doc.status = 'Não consegui ler esse arquivo.'; }
     if (!doc.erro){
-      const n = Object.keys(parseMensagem(doc.texto, { semServico: doc.tipo !== 'ATPV' }).d).length;
+      const n = Object.keys(parseMensagem(doc.texto, { semServico: !DOC_DEFINE_SERVICO.has(doc.tipo) }).d).length;
       doc.status = !n ? 'Li o texto, mas não achei campos conhecidos.'
         : doc.ocr ? `${n} campo${n > 1 ? 's' : ''} lido${n > 1 ? 's' : ''} da imagem. Confira, o OCR pode errar.`
         : `${n} campo${n > 1 ? 's' : ''} encontrado${n > 1 ? 's' : ''}`;

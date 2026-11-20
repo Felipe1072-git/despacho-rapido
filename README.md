@@ -8,7 +8,8 @@ Ferramenta pra despachante: cola a mensagem do cliente no WhatsApp e/ou anexa os
 
 - **Mensagem do WhatsApp**, do jeito que veio (com data, hora e nome do contato).
 - **ATPV-e** em PDF: comprador (vira o outorgante) e veículo. Os dados do vendedor ficam de fora.
-- **CRLV-e** em PDF: dados do veículo.
+- **CRLV-e** em PDF: dados do veículo e do dono atual. Os dados do dono ficam amarelos, porque numa transferência ele é o vendedor.
+- **NF-e (DANFE)** de veículo novo: o destinatário (vira o outorgante) e, da descrição do produto, chassi, modelo, cor e ano. Também marca o serviço como primeiro emplacamento.
 - **CNH digital** (PDF do gov.br): nome, CPF e RG, lidos da imagem do cartão (OCR).
 - **Word (.docx)**: fichas com rótulos tipo "Nome: ..." ou em tabela.
 
