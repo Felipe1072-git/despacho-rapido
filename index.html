@@ -1359,6 +1359,33 @@ buildForm();
 refresh();
 updCfgWarn();
 rotuloTema();
+
+// Demonstração com dados FICTÍCIOS (usada no README): ?demo=colado | lido | pdf
+// Não salva nada: "Meus dados" de exemplo valem só nesta aba.
+const PARAMS = new URLSearchParams(location.search), DEMO = PARAMS.get('demo');
+if (DEMO){
+  if (PARAMS.has('print')) document.documentElement.dataset.theme = 'light';   // prints do README: tema claro, sem rolar
+  cfg = { ...cfg, outorgados: [{ nome: 'DESPACHANTE EXEMPLO DA SILVA', rg: '1234567', orgao: 'SDS-PE', cpf: '111.444.777-35',
+    endereco: 'RUA DO EXEMPLO, 100', bairro: 'CENTRO', cidade: 'RECIFE', uf: 'PE', cep: '50.000-000' }],
+    logos: [], rodape: 'Demonstração com dados fictícios' };
+  updCfgWarn();
+  msg.value = `[20/11/2026 09:14] Ana: Bom dia! Seguem meus dados 🙂
+DADOS COMPRADOR
+Nome completo: Ana Beatriz Costa Lima
+CPF: 529.982.247-25
+RG: 7.654.321
+Órgão emissor: SDS/PE
+Endereço: Rua da Aurora, 120
+Bairro: Boa Vista
+Cidade/UF: Recife/PE
+CEP: 50050-000
+[20/11/2026 09:15] Ana: Placa: QKZ1A23
+Renavam: 01234567890
+Marca/modelo: VW/GOL 1.6
+Chassi: 9BWAA45U0GP012345`;
+  if (DEMO !== 'colado') ler();
+  if (DEMO === 'pdf') gerar().then(() => { if (!PARAMS.has('print')) document.getElementById('preview').scrollIntoView(); });
+}
 </script>
 </body>
 </html>
